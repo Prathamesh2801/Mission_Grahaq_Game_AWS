@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { motion } from 'framer-motion'
 import Sprite from './Sprite'
 import CoinPopup from './CoinPopup'
@@ -11,12 +12,19 @@ const SLOT_TOP_REM = [23.7, 44.25, 64.3]
 const STAGE_REM = 67.5
 const STAGE_TALL_REM = 120
 
-// Cards fly in from off-stage rather than fading up. The three slots take different
-// sides, rotated each round, so a set never arrives the same way twice running.
-const ENTRANCES = ['left', 'right', 'bottom', 'top']
+// Cards fly in from off-stage rather than fading up, from whichever sides are natural
+// for the slot: the top card never rises from below, the bottom card never drops from
+// above, and the middle one only ever slides in sideways. Rotated by round so a set
+// never arrives the same way twice running.
+const ENTRANCES = [
+  ['top', 'right', 'left'],
+  ['right', 'left'],
+  ['bottom', 'left', 'right'],
+]
 function offStage(slot, round) {
   const top = SLOT_TOP_REM[slot]
-  switch (ENTRANCES[(slot + round) % ENTRANCES.length]) {
+  const sides = ENTRANCES[slot]
+  switch (sides[round % sides.length]) {
     case 'left':
       return { x: `-${LEFT_REM + WIDTH_REM + 2}rem`, y: 0 }
     case 'right':
@@ -30,7 +38,7 @@ function offStage(slot, round) {
 
 // One shopping message, parked in its slot for the round.
 // Tapped: the icon becomes a ✓ / ✗ shield and the coins fly up. Then the card fades out.
-export default function FeedItem({ item, result, onTap }) {
+function FeedItem({ item, result, onTap }) {
   const status = result?.status
   const tapped = status === 'hit' || status === 'wrong'
   const from = offStage(item.slot, item.round)
@@ -85,3 +93,6 @@ export default function FeedItem({ item, result, onTap }) {
     </motion.button>
   )
 }
+
+// The 10Hz game clock re-renders the board; a card only changes when its result does.
+export default memo(FeedItem)

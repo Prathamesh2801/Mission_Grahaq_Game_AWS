@@ -1,4 +1,4 @@
-import { useEffect, useReducer } from 'react'
+import { useCallback, useEffect, useReducer } from 'react'
 import { redFlags, decoys } from '../data/scenarios'
 import { buildRounds, currentItems, initialState, reducer } from '../utils/game'
 
@@ -11,9 +11,11 @@ export function useGame() {
     return () => clearInterval(id)
   }, [])
 
+  const tap = useCallback((item) => dispatch({ type: 'tap', item }), [])
+
   return {
     state,
     items: state.done ? [] : currentItems(state),
-    tap: (item) => dispatch({ type: 'tap', item }),
+    tap,
   }
 }
