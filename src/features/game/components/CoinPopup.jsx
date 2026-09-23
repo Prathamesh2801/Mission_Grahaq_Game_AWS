@@ -10,7 +10,7 @@ export default function CoinPopup({ awards, className = '' }) {
           key={a.label}
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: -30, opacity: [0, 1, 1, 0] }}
-          transition={{ duration: 1.4, delay: i * 0.15, times: [0, 0.15, 0.7, 1] }}
+          transition={{ duration: 0.8, delay: i * 0.1, times: [0, 0.15, 0.6, 1] }}
           className="flex items-center gap-4 whitespace-nowrap"
         >
           <img src={coin} alt="" className="w-[3.6rem]" />
