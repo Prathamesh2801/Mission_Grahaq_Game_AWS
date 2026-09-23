@@ -9,9 +9,9 @@ const fresh = () => initialState(buildRounds(redFlags, decoys))
 const reds = (s) => currentItems(s).filter((i) => i.isRedFlag)
 // Move the clock past the speed-bonus window but inside the round.
 const late = (s) => ({ ...s, elapsed: s.roundAt + 5000 })
-// Settle the current round and let the next one drop in.
+// Settle the current round (by the clock if it is not settled already) and let the next drop in.
 const nextRound = (s) => {
-  const cleared = reducer({ ...s, elapsed: s.roundAt + ROUND_MS }, { type: 'tick', elapsed: s.roundAt + ROUND_MS })
+  const cleared = s.clearAt === null ? reducer(s, { type: 'tick', elapsed: s.roundAt + ROUND_MS }) : s
   return reducer(cleared, { type: 'tick', elapsed: cleared.clearAt + 1000 })
 }
 
@@ -91,14 +91,28 @@ test('a red flag left untapped when the round runs out costs -20', () => {
   assert.deepEqual(s.resolved[currentItems(s).find((i) => !i.isRedFlag).id].awards, [])
 })
 
-test('the round advances once all three cards are settled', () => {
+test('catching both red flags ends the round without waiting for the decoy or the clock', () => {
   let s = fresh()
-  for (const item of currentItems(s)) s = reducer(late(s), { type: 'tap', item })
-  assert.equal(s.round, 0)
-  assert.notEqual(s.clearAt, null)
+  const [a, b] = reds(s)
+  s = reducer(late(s), { type: 'tap', item: a })
+  assert.equal(s.clearAt, null) // one to go
+  s = reducer(s, { type: 'tap', item: b })
+  assert.equal(s.clearAt, s.elapsed) // settled the instant the second one is caught
+  assert.ok(s.elapsed - s.roundAt < ROUND_MS) // well before the round would time out
+
+  const decoy = currentItems(s).find((i) => !i.isRedFlag)
+  assert.equal(s.resolved[decoy.id], undefined) // left alone, as intended
   s = reducer(s, { type: 'tick', elapsed: s.clearAt + 1000 })
   assert.equal(s.round, 1)
   assert.equal(s.done, false)
+})
+
+test('a wrongly tapped decoy does not end the round on its own', () => {
+  let s = fresh()
+  const decoy = currentItems(s).find((i) => !i.isRedFlag)
+  s = reducer(late(s), { type: 'tap', item: decoy })
+  assert.equal(s.clearAt, null)
+  assert.equal(s.round, 0)
 })
 
 test('a perfect game is 10 rounds of two hits, and qualifies', () => {

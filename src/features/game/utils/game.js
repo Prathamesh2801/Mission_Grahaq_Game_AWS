@@ -62,7 +62,10 @@ const withFeedback = (state, kind) => ({
 
 export const currentItems = (state) => state.rounds[state.round] ?? []
 
-const settled = (state, resolved = state.resolved) => currentItems(state).every((i) => resolved[i.id])
+// A round is done the moment both red flags are caught — the decoy is meant to be left
+// alone, so waiting on it would punish correct play with idle time.
+const settled = (state, resolved = state.resolved) =>
+  currentItems(state).every((i) => !i.isRedFlag || resolved[i.id])
 
 function tap(state, item) {
   if (state.done || item.round !== state.round || state.resolved[item.id]) return state

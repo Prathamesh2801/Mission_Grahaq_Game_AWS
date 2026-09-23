@@ -70,9 +70,11 @@ fully unit-tested. `hooks/useGame.js` is the only thing that adds a clock (a 100
 dispatching `tick`). Keep rule changes in `game.js` so the tests can reach them.
 
 The round model: 10 rounds, each showing **3 cards at once in three fixed slots — 2 red flags
-and 1 decoy**, drawn randomly with no repeats from 42 red flags and 20 decoys. A round ends when
-all three are settled or after 10s, then a short reveal delay before the next drops in. Cards do
-not move between slots; earlier versions floated them up the screen, which is wrong.
+and 1 decoy**, drawn randomly with no repeats from 42 red flags and 20 decoys. A round ends the
+moment **both red flags are caught** — not when all three cards are resolved, since the decoy is
+meant to be left alone and waiting on it would make correct play sit idle — or after 10s,
+whichever comes first, then a ~0.9s reveal beat before the next drops in. Cards do not move
+between slots; earlier versions floated them up the screen, which is wrong.
 
 Scoring: +100 a hit, +25 tapped within 2s of the round appearing, +100 every third in a row,
 −50 tapping a decoy, −20 a red flag left untapped. A decoy left alone is correct and scores
