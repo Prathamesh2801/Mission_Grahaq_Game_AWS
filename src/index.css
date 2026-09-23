@@ -1,0 +1,85 @@
+@import 'tailwindcss';
+
+/* Fonts packaged with the master .ai (see scripts/prepare-assets.py). */
+@font-face {
+  font-family: 'Ember Modern Display';
+  src: url('./assets/fonts/ember-regular.ttf') format('truetype');
+  font-weight: 400;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'Ember Modern Display';
+  src: url('./assets/fonts/ember-bold.ttf') format('truetype');
+  font-weight: 700;
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'Vaseline Extra';
+  src: url('./assets/fonts/vaseline-extra.ttf') format('truetype');
+  font-display: block;
+}
+
+@font-face {
+  font-family: 'Press Start 2P';
+  src: url('./assets/fonts/press-start-2p.ttf') format('truetype');
+  font-display: block;
+}
+
+@theme {
+  --font-sans: 'Ember Modern Display', system-ui, sans-serif;
+  --font-pixel: 'Press Start 2P', monospace;
+  --color-ink: #1a1a1a;
+  --color-cream: #fffcf5;
+  --color-gold: #ffd23f;
+}
+
+/* The stage is 9:16 and 1rem = 1/67.5 of its width (16px on the 1080×1920 artboards),
+   so artboard pixel values convert to rem by dividing by 16. */
+html {
+  font-size: min(100vw / 67.5, 100dvh / 120);
+}
+
+body {
+  margin: 0;
+  background: #000;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Pixel borders: one box-shadow per side leaves the corners notched, like the artboards. */
+.card-panel {
+  background: rgb(0 0 0 / 0.4);
+  box-shadow:
+    0 -0.1875rem 0 #000,
+    0 0.1875rem 0 #000,
+    -0.1875rem 0 0 #000,
+    0.1875rem 0 0 #000,
+    0.5rem 0.5rem 0 rgb(0 0 0 / 0.4);
+}
+
+.pixel-bubble {
+  background: var(--color-cream);
+  color: #000;
+  box-shadow:
+    0 -0.4375rem 0 var(--color-ink),
+    0 0.4375rem 0 var(--color-ink),
+    -0.4375rem 0 0 var(--color-ink),
+    0.4375rem 0 0 var(--color-ink);
+}
+
+/* Score / coin numbers: white pixel type with a hard dark drop. */
+.pixel-number {
+  font-family: var(--font-pixel);
+  color: #fff;
+  text-shadow:
+    0.25rem 0.25rem 0 #000,
+    -0.125rem -0.125rem 0 #000,
+    0.125rem -0.125rem 0 #000,
+    -0.125rem 0.125rem 0 #000;
+}

@@ -1,0 +1,5 @@
+export { default as Chhavi } from './components/Chhavi'
+export { default as Countdown } from './components/Countdown'
+export { default as GameBoard } from './components/GameBoard'
+export { default as SpeechBubble } from './components/SpeechBubble'
+export { default as Stars } from './components/Stars'

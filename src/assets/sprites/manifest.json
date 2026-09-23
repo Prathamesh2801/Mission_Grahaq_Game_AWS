@@ -1,0 +1,25 @@
+{
+  "cell": 128,
+  "cols": 10,
+  "frames": {
+    "badge": 91,
+    "bank": 124,
+    "box": 55,
+    "card": 120,
+    "chat": 98,
+    "clock": 150,
+    "coin": 105,
+    "globe": 124,
+    "link": 46,
+    "lock": 50,
+    "moblie": 120,
+    "present": 60,
+    "PriceTag": 85,
+    "receipt": 73,
+    "recycle": 120,
+    "siren": 82,
+    "star": 105,
+    "truck": 61,
+    "watch": 69
+  }
+}

@@ -1,0 +1,8 @@
+node_modules
+dist
+
+# Design sources (large .ai/.zip/video and raw audio) live outside the repo
+docs
+
+__pycache__/
+*.pyc
