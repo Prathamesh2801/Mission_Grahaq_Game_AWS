@@ -4,7 +4,7 @@
 export const ROUNDS = 10
 export const ROUND_MS = 10_000
 export const SLOTS = 3
-export const QUALIFYING_SCORE = 1000
+const QUALIFYING_SCORE = 1000
 
 const RED_FLAGS_PER_ROUND = 2
 const DECOYS_PER_ROUND = 1
@@ -47,10 +47,7 @@ export const initialState = (rounds) => ({
   resolved: {}, // id -> { status: 'hit' | 'wrong' | 'missed', awards: [{ points, label }] }
   score: 0,
   streak: 0,
-  bestStreak: 0,
-  spotted: 0,
   wrongTaps: 0,
-  missed: 0,
   speedBonuses: 0,
   feedback: null,
   done: false,
@@ -58,9 +55,9 @@ export const initialState = (rounds) => ({
 
 const award = (points, note) => ({ points, label: `${points > 0 ? '+' : '–'}${Math.abs(points)}${note ? ` ${note}` : ''}` })
 
-const withFeedback = (state, kind, points) => ({
+const withFeedback = (state, kind) => ({
   ...state,
-  feedback: { kind, points, n: (state.feedback?.n ?? 0) + 1 },
+  feedback: { kind, n: (state.feedback?.n ?? 0) + 1 },
 })
 
 export const currentItems = (state) => state.rounds[state.round] ?? []
@@ -82,7 +79,6 @@ function tap(state, item) {
         wrongTaps: state.wrongTaps + 1,
       },
       'wrong',
-      POINTS.wrong,
     )
   }
 
@@ -104,12 +100,9 @@ function tap(state, item) {
       clearAt: settled(state, resolved) ? state.elapsed : state.clearAt,
       score: state.score + points,
       streak,
-      bestStreak: Math.max(state.bestStreak, streak),
-      spotted: state.spotted + 1,
       speedBonuses: state.speedBonuses + (speedBonus ? 1 : 0),
     },
     streakBonus ? 'streak' : speedBonus ? 'speed' : 'hit',
-    points,
   )
 }
 
@@ -121,9 +114,8 @@ function expire(state) {
   const next = { ...state, resolved, clearAt: state.elapsed }
   if (!gone.length) return next
   return withFeedback(
-    { ...next, score: state.score + gone.length * POINTS.miss, streak: 0, missed: state.missed + gone.length },
+    { ...next, score: state.score + gone.length * POINTS.miss, streak: 0 },
     'miss',
-    gone.length * POINTS.miss,
   )
 }
 
@@ -154,8 +146,5 @@ export function reducer(state, action) {
 
 export const summarize = (state) => ({
   score: state.score,
-  spotted: state.spotted,
-  accuracy: Math.floor((100 * state.spotted) / Math.max(1, state.spotted + state.wrongTaps)),
-  bestStreak: state.bestStreak,
   qualified: state.score >= QUALIFYING_SCORE,
 })

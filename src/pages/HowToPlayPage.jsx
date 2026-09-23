@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router'
-import { Chhavi, Stars } from '../features/game'
+import Chhavi from '../features/game/components/Chhavi'
+import Stars from '../features/game/components/Stars'
 import letsGo from '../assets/ui/lets-go.webp'
 
 // Artboard 2: instructions. Positions are artboard pixels ÷ 16.

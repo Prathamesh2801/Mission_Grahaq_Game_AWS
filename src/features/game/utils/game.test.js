@@ -109,7 +109,5 @@ test('a perfect game is 10 rounds of two hits, and qualifies', () => {
   }
   const result = summarize(s)
   assert.equal(result.score, 20 * 100 + 6 * 100) // 20 hits + a streak bonus every 3rd
-  assert.equal(result.spotted, 20)
-  assert.equal(result.accuracy, 100)
   assert.equal(result.qualified, true)
 })

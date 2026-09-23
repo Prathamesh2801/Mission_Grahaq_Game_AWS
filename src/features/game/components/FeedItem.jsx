@@ -50,7 +50,7 @@ export default function FeedItem({ item, result, onTap }) {
             className="w-[7.5rem]"
           />
         ) : (
-          <Sprite name={item.icon} size={8} />
+          <Sprite name={item.icon} />
         )}
       </span>
       <span className="ml-[3.2rem] leading-tight">

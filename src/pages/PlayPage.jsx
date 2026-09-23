@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router'
-import { Countdown, GameBoard } from '../features/game'
+import Countdown from '../features/game/components/Countdown'
+import GameBoard from '../features/game/components/GameBoard'
 
 export default function PlayPage() {
   const navigate = useNavigate()

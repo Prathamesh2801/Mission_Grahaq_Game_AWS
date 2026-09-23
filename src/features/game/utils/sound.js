@@ -14,10 +14,6 @@ export function startMusic() {
   music.play().catch(ignore)
 }
 
-export function stopMusic() {
-  music.pause()
-}
-
 // Fresh copy per play so quick successive taps overlap instead of cutting each other off.
 export function playSfx(name) {
   sfx[name].cloneNode().play().catch(ignore)

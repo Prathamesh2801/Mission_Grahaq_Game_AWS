@@ -32,7 +32,6 @@
   --font-pixel: 'Press Start 2P', monospace;
   --color-ink: #1a1a1a;
   --color-cream: #fffcf5;
-  --color-gold: #ffd23f;
 }
 
 /* The stage is 9:16 and 1rem = 1/67.5 of its width (16px on the 1080×1920 artboards),

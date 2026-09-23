@@ -1,6 +1,8 @@
 import { useNavigate } from 'react-router'
 import { motion } from 'framer-motion'
-import { Chhavi, SpeechBubble, Stars } from '../features/game'
+import Chhavi from '../features/game/components/Chhavi'
+import SpeechBubble from '../features/game/components/SpeechBubble'
+import Stars from '../features/game/components/Stars'
 import { startMusic } from '../features/game/utils/sound'
 import tapToPlay from '../assets/ui/tap-to-play.webp'
 

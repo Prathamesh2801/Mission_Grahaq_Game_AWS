@@ -6,7 +6,8 @@ const url = (name) => sheets[`../../../assets/sprites/${name}.webp`]
 const FPS = 24
 
 // Looping pixel-icon animation from a repacked sheet (see scripts/prepare-assets.py).
-export default function Sprite({ name, size = 7 }) {
+export default function Sprite({ name }) {
+  const size = 8 // rem, the icon box on every card
   const frames = manifest.frames[name]
   const [frame, setFrame] = useState(0)
 

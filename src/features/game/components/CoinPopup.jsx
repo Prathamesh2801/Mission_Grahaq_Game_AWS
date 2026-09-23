@@ -2,9 +2,9 @@ import { motion } from 'framer-motion'
 import coin from '../../../assets/ui/coin.webp'
 
 // Coin + points above a card (artboards 10–17), one row per award, rising and fading out.
-export default function CoinPopup({ awards, className = '', style }) {
+export default function CoinPopup({ awards, className = '' }) {
   return (
-    <div className={`pointer-events-none absolute flex flex-col-reverse gap-2 ${className}`} style={style}>
+    <div className={`pointer-events-none absolute flex flex-col-reverse gap-2 ${className}`}>
       {awards.map((a, i) => (
         <motion.div
           key={a.label}

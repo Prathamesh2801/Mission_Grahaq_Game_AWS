@@ -3,7 +3,6 @@ import { motion } from 'framer-motion'
 // Chhavi's pixel speech bubble. `tail` is the side pointing at her.
 const TAIL = {
   right: 'top-1/2 -right-[2.6rem] -translate-y-1/2',
-  left: 'top-1/2 -left-[2.6rem] -translate-y-1/2 -scale-x-100',
   bottom: 'left-[72%] -bottom-[2.9rem] rotate-90',
 }
 
