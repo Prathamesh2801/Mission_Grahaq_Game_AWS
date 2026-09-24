@@ -23,10 +23,11 @@ python scripts/prepare-assets.py   # regenerate everything under src/assets + sc
 
 ## The design is the source of truth, and it lives outside the repo
 
-`docs/` holds the master Illustrator file, the asset zip, and `final_v1.mp4` — a screen capture
+`docs/` holds the master Illustrator file, the asset zip, and `final_v2_win.mp4` — a screen capture
 of the finished game that defines layout, sizing, timing and Chhavi's reaction lines. **`docs/`
 is gitignored**, so a clone can build and run but cannot regenerate assets. When something
-looks wrong, measure it against `final_v1.mp4` (ffmpeg is available) rather than guessing.
+looks wrong, measure it against `final_v2_win.mp4` (ffmpeg is available) rather than guessing.
+(Older comments cite `final_v1.mp4`, the capture it replaced.)
 
 Everything under `src/assets/` and `src/features/game/data/scenarios.js` is **generated** by
 `scripts/prepare-assets.py` from those sources. Do not hand-edit them; change the crop boxes or
@@ -80,6 +81,10 @@ Scoring: +100 a hit, +25 tapped within 2s of the round appearing, +100 every thi
 −50 tapping a decoy, −20 a red flag left untapped. A decoy left alone is correct and scores
 nothing.
 
+Chhavi's line for a hit, highest priority first: streak ("Three in a Row!"), speed ("Quick
+Eyes!"), clean round clear ("Keep going!": second red flag caught, decoy untouched, not the last
+round), otherwise "Nice catch!".
+
 `layouts/KioskLayout.jsx` owns the stage, the background, **and the logo** — the logo is
 deliberately not part of any page, because it holds still while screens scale out to a point and
 the next scales up, which is the transition the video uses. Pages are the router outlet inside
@@ -88,9 +93,27 @@ that `AnimatePresence`.
 `pages/` are the four screens (idle → how-to-play → play → result); `PlayPage` just switches
 `Countdown` for `GameBoard`.
 
+**Start taps**: on the idle and how-to-play screens only the TAP TO PLAY art and the LET'S GO
+button advance, never a tap elsewhere. The tap plays `Burst` — the designer's Lottie
+(`docs/burst-bubble.json`, played by `lottie-web`'s light build) — at the finger, and swells the
+page to 1.1× over 0.4s; the page navigates only when that finishes, and the layout's 0.45s exit
+collapses it from there — the video's swell-then-collapse. Don't put CSS `filter`s on anything
+that animates during that tap: a `drop-shadow` on the burst stalled the page for up to 600ms, so
+its outline is baked into the Lottie by the asset script instead.
+
+**Result**: the score counts up from 0 at 300 points a second (a 2225 takes ~7.4s; the video's
+200/s felt slow), plain digits with no separators, and the 20s auto-return starts only once it lands.
+
 **Audio**: browsers only allow playback after a user gesture, so `startMusic()` fires on the
 TAP TO PLAY tap in `IdlePage` and loops from there through the whole session. Nothing else
 starts or stops it.
 
-Pixel-art borders that need notched corners (`card-panel`, `pixel-bubble`, `pixel-number`) are
-box-shadow recipes in `src/index.css`, not Tailwind borders.
+Card icons are the designer's sprite sheets, repacked by the asset script. Each is an entrance
+that ends on a settled pose, so `Sprite` plays it once as the card arrives and holds the last
+frame. Some sheets centre their grid with a margin; the script finds each sheet's real row offset
+rather than slicing from y=0, which cut frames in half (a floating half-truck, stray box slivers).
+
+Chhavi's speech bubbles are images cut from the artboards (`ui/bubble-*.webp`), copy included.
+Lines the artboards don't letter go on a `bubble-blank-*` shape with live text over it.
+`card-panel` is the artboards' notched panel path as a 9-slice `border-image` in `src/index.css`;
+`pixel-number` is a text-shadow recipe there too.

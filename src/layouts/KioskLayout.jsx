@@ -23,7 +23,8 @@ export default function KioskLayout() {
             key={pathname}
             initial={{ scale: 0.06, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.06, opacity: 0, transition: { duration: 0.22, ease: 'easeIn' } }}
+            // collapse to a point, accelerating, as docs/final_v2_win.mp4 measures (~0.45s)
+            exit={{ scale: 0.06, opacity: 0, transition: { duration: 0.45, ease: 'easeIn' } }}
             transition={{
               scale: { duration: 0.6, ease: [0.16, 1, 0.3, 1] },
               opacity: { duration: 0.18 },

@@ -6,8 +6,11 @@ const url = (name) => sheets[`../../../assets/sprites/${name}.webp`]
 const FPS = 24
 const SIZE = 8 // rem, the icon box on every card
 
-// Looping pixel-icon animation from a repacked sheet (see scripts/prepare-assets.py).
-// The frame is written straight to the DOM node: these sheets run 55–150 frames, and
+// Pixel-icon animation from a repacked sheet (see scripts/prepare-assets.py).
+// The sheets are entrances — the box drops in, the truck gets loaded, the coins pile up — that
+// end on a settled pose, so it plays once as the card arrives and holds the last frame.
+// Looping replayed three entrances every few seconds, and the board never sat still.
+// The frame is written straight to the DOM node: these sheets run 46–150 frames, and
 // re-rendering three of them through React state stalled the card entrance animations.
 export default function Sprite({ name }) {
   const ref = useRef(null)
@@ -18,7 +21,7 @@ export default function Sprite({ name }) {
     const el = ref.current
     let frame = 0
     const id = setInterval(() => {
-      frame = (frame + 1) % frames
+      if (++frame === frames - 1) clearInterval(id)
       el.style.backgroundPosition = `-${(frame % cols) * SIZE}rem -${Math.floor(frame / cols) * SIZE}rem`
     }, 1000 / FPS)
     return () => clearInterval(id)

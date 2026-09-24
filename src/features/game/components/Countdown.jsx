@@ -14,11 +14,19 @@ const STEPS = {
   2: { digit: digit2, pose: 'two', width: 'w-[13.8rem]' },
   1: { digit: digit1, pose: 'one', width: 'w-[8.6rem]' },
 }
+for (const src of [digit3, digit2, digit1]) {
+  const img = new Image()
+  img.src = src
+  img.decode().catch(() => {})
+}
 // 16.8rem tall, centred at 54rem down the stage.
 const DIGIT_BOX = 'absolute top-[45.6rem] left-1/2 flex h-[16.8rem] -translate-x-1/2 items-center'
 
 // "Starts in 3… 2… 1…" (artboards 7–9), Chhavi counting on her fingers.
-// Each numeral drops in oversized, springs to rest, then shrinks out as the next arrives.
+// Each numeral drops in oversized and springs to rest while the last one shrinks out
+// (popLayout: the two overlap, so the box is never empty). Chhavi's three poses share one crop,
+// placed where artboards 7–9 put it (x 301–765, down to the bottom edge), so swapping the image
+// flips only her hand. No cross-fade: the faces differ slightly between drawings and would ghost.
 export default function Countdown({ onDone }) {
   const [count, setCount] = useState(3)
   const step = STEPS[count]
@@ -32,7 +40,7 @@ export default function Countdown({ onDone }) {
     <div className="absolute inset-0">
       <img src={startsIn} alt="Starts in" className="absolute top-[29.9rem] left-1/2 w-[58.8rem] -translate-x-1/2" />
       <div className={DIGIT_BOX}>
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="popLayout">
           <motion.img
             key={count}
             src={step.digit}
@@ -45,7 +53,7 @@ export default function Countdown({ onDone }) {
           />
         </AnimatePresence>
       </div>
-      <Chhavi key={count} pose={step.pose} className="absolute bottom-0 left-[19.6rem] w-[24.9rem]" />
+      <Chhavi pose={step.pose} className="absolute bottom-0 left-[18.8rem] w-[29rem]" />
     </div>
   )
 }

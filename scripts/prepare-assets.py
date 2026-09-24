@@ -4,10 +4,11 @@ Sources:
   docs/FICCI Mascarade_ Interactive Display_Folder_3.zip  master .ai (17 artboards), Chhavi PNGs, fonts
   docs/Animations.rar                                     icon sprite sheets
   docs/*.mp3.mpeg                                         music + sound effects
+  docs/burst-bubble.json                                  tap burst (Lottie)
 
 Re-run whenever any of them change:
     python scripts/prepare-assets.py
-Needs Pillow, PyMuPDF and the Windows/bsdtar `tar` (reads .rar).
+Needs Pillow, NumPy, PyMuPDF and the Windows/bsdtar `tar` (reads .rar).
 """
 import json
 import re
@@ -18,6 +19,7 @@ import tempfile
 import zipfile
 from pathlib import Path
 
+import numpy as np
 import pymupdf
 from PIL import Image
 
@@ -43,6 +45,8 @@ MASCOT = {
     'two.png': 'two',
     'three.png': 'three',
 }
+
+COUNTDOWN_POSES = ('One.png', 'two.png', 'three.png')
 
 FONTS = {
     'EmberModernDisplayStd-Regular.ttf': 'ember-regular.ttf',
@@ -74,11 +78,25 @@ UI_CROPS = {
     'your-score': (4, (220, 598, 860, 692)),
     'qr': (4, (300, 952, 780, 1350)),
 }
+# Chhavi's speech bubbles, copy and all, as the designer set them (Chhavi's raster left out).
+BUBBLES = {
+    'bubble-ready': (0, (140, 1360, 680, 1610)),
+    'bubble-nice-catch': (2, (270, 120, 790, 450)),
+    'bubble-watch-out': (2, (140, 900, 600, 1170)),
+    'bubble-too-slow': (2, (620, 1380, 1050, 1730)),
+    'bubble-decoy': (3, (270, 90, 790, 450)),
+    'bubble-keep-going': (3, (140, 900, 600, 1170)),
+    'bubble-pass': (4, (60, 1470, 680, 1760)),
+    'bubble-fail': (5, (90, 1470, 700, 1830)),
+}
 # Pixel-art drawn on top of a card: rebuilt from its vector paths alone.
 UI_VECTORS = {
     'shield-ok': (9, (120, 1115, 235, 1245)),
     'shield-bad': (14, (120, 1095, 240, 1215)),
     'coin': (9, (235, 1065, 315, 1145)),
+    # empty bubble shapes for reaction lines the artboards don't letter
+    'bubble-blank-1': (2, (270, 120, 790, 450)),
+    'bubble-blank-2': (3, (270, 90, 790, 450)),
 }
 
 # Card icons as assigned in the artboards (matched on normalised card text, first match wins).
@@ -107,22 +125,52 @@ DECOY_ARTBOARDS = range(14, 17)
 
 # ---------- sprites ----------
 
+def grid_offset(alpha, cell):
+    """Where the rows really start. Some sheets centre their grid with a margin, so slicing from
+    y=0 cuts every frame in two (the truck's top in one frame, its wheels in the next). Pick the
+    middle of the widest run of offsets where no drawn pixel sits on a row edge; if every offset
+    crosses art (coin, watch draw past their edges on purpose), keep 0."""
+    rows = alpha.any(axis=1)
+    lines = lambda o: [round(o + k * cell) for k in range(int(len(rows) / cell) + 1) if round(o + k * cell) < len(rows)]
+    clear = [not any(rows[y] for y in lines(o)) for o in range(int(cell))]
+    if not any(clear):
+        return 0.0
+    # widest circular run of clear offsets, and its middle
+    best, start = (0, 0), None
+    for i in range(2 * len(clear)):
+        if clear[i % len(clear)]:
+            start = i if start is None else start
+            best = max(best, (i - start + 1, start))
+        else:
+            start = None
+    length, first = best
+    top = (first + (min(length, len(clear)) - 1) / 2) % cell
+    return top - cell if top > cell / 2 else top  # a first row starting just above y=0 is empty margin
+
+
 def repack_sprite(src, out_dir):
     """Source sheets use square cells (15 or 5 columns) with fractional sizes; repack to integer cells."""
     sheet = Image.open(src).convert('RGBA')
     w, h = sheet.size
     cols = 5 if w < 1000 else 15
     cell = w / cols
-    rows = round(h / cell)
     alpha = sheet.getchannel('A').point(lambda p: 255 if p > 20 else 0)
-    boxes = [(int(c * cell), int(r * cell), int((c + 1) * cell), int((r + 1) * cell)) for r in range(rows) for c in range(cols)]
-    last = max(i for i, b in enumerate(boxes) if alpha.crop(b).getbbox())
-    frames = [sheet.crop(b).resize((CELL, CELL), Image.LANCZOS) for b in boxes[: last + 1]]
+    top = grid_offset(np.asarray(alpha) > 0, cell)
+    rows = int((h - top) / cell + 0.01)
+    boxes = [(int(c * cell), int(top + r * cell), int((c + 1) * cell), int(top + (r + 1) * cell)) for r in range(rows) for c in range(cols)]
+    drawn = [i for i, b in enumerate(boxes) if alpha.crop(b).getbbox()]
+    # the icon plays once as its card arrives, so blank lead-in frames would only show an empty slot
+    frames = [sheet.crop(b).resize((CELL, CELL), Image.LANCZOS) for b in boxes[drawn[0] : drawn[-1] + 1]]
+    # ...and it holds its last frame, so end on the last full-size one: chat shrinks to a dot
+    # and star fades out at the tail of their loops, which would leave an empty slot.
+    area = [np.count_nonzero(np.asarray(f.getchannel('A')) > 40) for f in frames]
+    frames = frames[: max(i for i, a in enumerate(area) if a >= 0.8 * max(area)) + 1]
     out = Image.new('RGBA', (COLS * CELL, -(-len(frames) // COLS) * CELL))
     for i, f in enumerate(frames):
         out.paste(f, ((i % COLS) * CELL, (i // COLS) * CELL))
     name = src.stem.split(' (')[0]  # "link (1).png" -> "link"
     out.save(out_dir / f'{name}.webp', quality=85, method=6)
+    print(f'sprite {name}: {len(frames)} frames, rows from y={top:.0f}')
     return name, len(frames)
 
 
@@ -168,14 +216,17 @@ def background_groups(ai, pno):
     return stream, bg
 
 
-def render_without_background(ai, pno):
+def render_without_background(ai, pno, images=True):
     stream, bg = background_groups(ai, pno)
     kept, pos = [], 0
     for a, b in bg:
         kept.append(stream[pos:a])
         pos = b
     kept.append(stream[pos:])
-    return render_stream(ai, pno, b''.join(kept), True)
+    stream = b''.join(kept)
+    if not images:
+        stream = re.sub(rb'/Im\d+ Do', b'', stream)
+    return render_stream(ai, pno, stream, True)
 
 
 def render_vectors(ai, pno, box):
@@ -243,10 +294,69 @@ def export_ui(ai, out_dir):
         im = trim(rendered[pno].crop(box))
         im.save(out_dir / f'{name}.webp', quality=92, method=6)
         print(f'ui {name}: {im.size}')
+    for name, (pno, box) in BUBBLES.items():
+        im = render_without_background(ai, pno, images=False).crop(box)
+        x, y = im.getchannel('A').getbbox()[:2]
+        im = trim(im)
+        im.save(out_dir / f'{name}.webp', lossless=True)
+        print(f'ui {name}: {im.size} at {(box[0] + x, box[1] + y)}')
     for name, (pno, box) in UI_VECTORS.items():
         im = trim(render_vectors(ai, pno, box))
         im.save(out_dir / f'{name}.webp', lossless=True)
         print(f'ui {name}: {im.size}')
+
+
+def export_chhavi(links, out_dir):
+    """Each pose trimmed to itself, except the countdown poses: those share one 2400×3967
+    frame in the artboards and cross-fade in place, so they get one shared crop to stay aligned."""
+    shutil.rmtree(out_dir, ignore_errors=True)
+    out_dir.mkdir(parents=True)
+    raw = {name: Image.open(links / name).convert('RGBA') for name in MASCOT}
+    boxes = [raw[name].getchannel('A').getbbox() for name in COUNTDOWN_POSES]
+    shared = (min(b[0] for b in boxes), min(b[1] for b in boxes), max(b[2] for b in boxes), max(b[3] for b in boxes))
+    print(f'chhavi: countdown crop {shared} of {raw[COUNTDOWN_POSES[0]].size}')
+    for name, pose in MASCOT.items():
+        im = raw[name].crop(shared) if name in COUNTDOWN_POSES else trim(raw[name])
+        im.thumbnail((900, 900), Image.LANCZOS)
+        im.save(out_dir / f'{pose}.webp', quality=88, method=6)
+
+
+def outline_lottie(src, dst, width=10, color=(0.227, 0.027, 0.086, 1)):
+    """The burst's orange is the same as TAP TO PLAY and the horizon band behind both buttons.
+    Give every stroke a dark maroon twin, `width` comp px wider, drawn behind it (in a Lottie
+    group later items render underneath). A CSS drop-shadow did the same but stalled the page:
+    the filter is re-rasterised every frame. A twin whose width animates with the original
+    (and reaches 0 when it does) costs nothing extra."""
+    data = json.loads(src.read_text(encoding='utf8'))
+
+    def widen(prop):
+        prop = json.loads(json.dumps(prop))
+        if prop['a']:
+            for key in prop['k']:
+                if 's' in key:
+                    key['s'] = [v + width if v > 0 else 0 for v in key['s']]
+        else:
+            prop['k'] = prop['k'] + width if prop['k'] > 0 else 0
+        return prop
+
+    def walk(items):
+        out = []
+        for it in items:
+            out.append(it)
+            if it.get('ty') == 'gr':
+                it['it'] = walk(it['it'])
+            elif it.get('ty') == 'st':
+                twin = json.loads(json.dumps(it))
+                twin['nm'] = 'Outline'
+                twin['c'] = {'a': 0, 'k': list(color)}
+                twin['w'] = widen(it['w'])
+                out.append(twin)
+        return out
+
+    for layer in data['layers'] + [l for a in data.get('assets', []) for l in a.get('layers', [])]:
+        if 'shapes' in layer:
+            layer['shapes'] = walk(layer['shapes'])
+    dst.write_text(json.dumps(data, separators=(',', ':')), encoding='utf8')
 
 
 def normalise(text):
@@ -333,13 +443,7 @@ def main():
         (sprites / 'manifest.json').write_text(json.dumps({'cell': CELL, 'cols': COLS, 'frames': manifest}, indent=2) + '\n')
         print(f'sprites: {len(manifest)}')
 
-        chhavi = ASSETS / 'chhavi'
-        shutil.rmtree(chhavi, ignore_errors=True)
-        chhavi.mkdir(parents=True)
-        for raw, pose in MASCOT.items():
-            im = trim(Image.open(tmp / 'Links' / raw).convert('RGBA'))
-            im.thumbnail((900, 900), Image.LANCZOS)
-            im.save(chhavi / f'{pose}.webp', quality=88, method=6)
+        export_chhavi(tmp / 'Links', ASSETS / 'chhavi')
 
         fonts = ASSETS / 'fonts'
         shutil.rmtree(fonts, ignore_errors=True)
@@ -358,6 +462,9 @@ def main():
     audio.mkdir(parents=True, exist_ok=True)
     for raw, name in AUDIO.items():
         shutil.copyfile(DOCS / raw, audio / name)
+
+    # tap burst on TAP TO PLAY / LET'S GO, a Lottie played by lottie-web
+    outline_lottie(DOCS / 'burst-bubble.json', ASSETS / 'burst-bubble.json')
 
 
 if __name__ == '__main__':

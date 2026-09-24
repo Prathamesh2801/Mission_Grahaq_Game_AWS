@@ -1,26 +1,24 @@
 import { motion } from 'framer-motion'
 
-// Chhavi's pixel speech bubble. `tail` is the side pointing at her.
-const TAIL = {
-  right: 'top-1/2 -right-[2.6rem] -translate-y-1/2',
-  bottom: 'left-[72%] -bottom-[2.9rem] rotate-90',
-}
-
-export default function SpeechBubble({ children, tail = 'right', className = '' }) {
+// Chhavi's speech bubble, cut from the artboards by scripts/prepare-assets.py.
+// Lettered bubbles carry their copy in the image. A blank bubble takes `children` as its line,
+// laid over the bubble's body (`textClassName` places it clear of the tail).
+// Size it with a `w-[…]` from the caller, like any image.
+export default function SpeechBubble({ src, alt, children, textClassName = '', className = '' }) {
   return (
     <motion.div
       initial={{ scale: 0.6, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ type: 'spring', stiffness: 400, damping: 22 }}
-      // the tail needs a positioned bubble, but Tailwind would let this `relative` beat a caller's `absolute`
-      className={`pixel-bubble ${/(^|\s)(absolute|fixed|sticky)/.test(className) ? '' : 'relative'} px-8 py-5 text-center leading-tight ${className}`}
+      // the overlaid line needs a positioned bubble, but Tailwind would let this `relative` beat a caller's `absolute`
+      className={`${/(^|\s)(absolute|fixed|sticky)/.test(className) ? '' : 'relative'} ${className}`}
     >
-      {children}
-      {/* stepped pixel tail */}
-      <svg viewBox="0 0 6 6" className={`absolute size-[3rem] ${TAIL[tail]}`} shapeRendering="crispEdges" aria-hidden>
-        <path d="M0 1h1v1h1v1h1v1h-1v1h-1v1h-1z" fill="var(--color-ink)" />
-        <path d="M0 2h1v1h1v1h-1v1h-1z" fill="var(--color-cream)" />
-      </svg>
+      <img src={src} alt={children ? '' : alt} draggable={false} className="block w-full" />
+      {children && (
+        <span className={`absolute grid place-items-center text-center leading-none font-bold text-black ${textClassName}`}>
+          {children}
+        </span>
+      )}
     </motion.div>
   )
 }

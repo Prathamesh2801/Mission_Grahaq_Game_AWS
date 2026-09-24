@@ -72,6 +72,26 @@ test('scoring: hit +100, speed +25, streak +100 every 3, wrong -50', () => {
   assert.equal(quick.feedback.kind, 'speed')
 })
 
+test('"Keep going!" (clear) only for a clean round clear, never on the last round', () => {
+  let s = fresh()
+  const [a, b] = reds(s)
+  s = reducer(late(s), { type: 'tap', item: a })
+  assert.equal(s.feedback.kind, 'hit') // one to go
+  s = reducer(s, { type: 'tap', item: b })
+  assert.equal(s.feedback.kind, 'clear')
+
+  s = nextRound(s)
+  const decoy = currentItems(s).find((i) => !i.isRedFlag)
+  s = reducer(late(s), { type: 'tap', item: decoy })
+  for (const item of reds(s)) s = reducer(late(s), { type: 'tap', item })
+  assert.notEqual(s.feedback.kind, 'clear') // the decoy was tapped this round
+
+  s = fresh()
+  while (s.round < ROUNDS - 1) s = nextRound(s) // let the clock run out on rounds 1–9
+  for (const item of reds(s)) s = reducer(late(s), { type: 'tap', item })
+  assert.equal(s.feedback.kind, 'hit') // the game ends here, nothing to keep going to
+})
+
 test('taps on a card from another round are ignored', () => {
   const s = fresh()
   const later = s.rounds[3][0]

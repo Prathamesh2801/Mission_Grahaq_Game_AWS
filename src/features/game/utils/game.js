@@ -113,17 +113,24 @@ function tap(state, item) {
   ];
   const points = awards.reduce((sum, a) => sum + a.points, 0);
   const resolved = { ...state.resolved, [item.id]: { status: "hit", awards } };
+  const cleared = settled(state, resolved);
+  // "Keep going!" for a round cleared without touching the decoy — unless a bonus line
+  // matches the coins on screen, or this was the last round and there is nothing to keep going to.
+  const clean =
+    cleared &&
+    state.round < ROUNDS - 1 &&
+    currentItems(state).every((i) => resolved[i.id]?.status !== "wrong");
 
   return withFeedback(
     {
       ...state,
       resolved,
-      clearAt: settled(state, resolved) ? state.elapsed : state.clearAt,
+      clearAt: cleared ? state.elapsed : state.clearAt,
       score: state.score + points,
       streak,
       speedBonuses: state.speedBonuses + (speedBonus ? 1 : 0),
     },
-    streakBonus ? "streak" : speedBonus ? "speed" : "hit",
+    streakBonus ? "streak" : speedBonus ? "speed" : clean ? "clear" : "hit",
   );
 }
 
