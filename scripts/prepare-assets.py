@@ -321,9 +321,10 @@ def export_chhavi(links, out_dir):
         im.save(out_dir / f'{pose}.webp', quality=88, method=6)
 
 
-def outline_lottie(src, dst, width=10, color=(0.227, 0.027, 0.086, 1)):
-    """The burst's orange is the same as TAP TO PLAY and the horizon band behind both buttons.
-    Give every stroke a dark maroon twin, `width` comp px wider, drawn behind it (in a Lottie
+def outline_lottie(src, dst, width=10, color=(0.227, 0.027, 0.086, 1), fill=(1, 0.949, 0.749, 1)):
+    """The burst's orange is the same as TAP TO PLAY and the horizon band behind both buttons,
+    so recolour every stroke to `fill` (a gold-tinted white) and give each a dark maroon
+    twin, `width` comp px wider, drawn behind it (in a Lottie
     group later items render underneath). A CSS drop-shadow did the same but stalled the page:
     the filter is re-rasterised every frame. A twin whose width animates with the original
     (and reaches 0 when it does) costs nothing extra."""
@@ -346,6 +347,7 @@ def outline_lottie(src, dst, width=10, color=(0.227, 0.027, 0.086, 1)):
             if it.get('ty') == 'gr':
                 it['it'] = walk(it['it'])
             elif it.get('ty') == 'st':
+                it['c'] = {'a': 0, 'k': list(fill), 'ix': 3}
                 twin = json.loads(json.dumps(it))
                 twin['nm'] = 'Outline'
                 twin['c'] = {'a': 0, 'k': list(color)}
