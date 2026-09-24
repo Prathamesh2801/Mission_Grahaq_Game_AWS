@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { useGame } from '../hooks/useGame'
 import { summarize } from '../utils/game'
 import { playSfx } from '../utils/sound'
@@ -68,12 +69,18 @@ export default function GameBoard({ onFinish }) {
         <FeedItem key={item.id} item={item} result={state.resolved[item.id]} onTap={tap} />
       ))}
 
-      {reaction && (
-        <div
-          key={event.n}
+      {/* The reducer clears the reaction after REACTION_MS; fade it rather than cut it. The
+          wrapper's key is fixed so a new line swaps in rather than fading out under the next;
+          the per-event keys below replay the entrance. */}
+      <AnimatePresence>
+        {reaction && (
+        <motion.div
+          key="reaction"
+          exit={{ opacity: 0, transition: { duration: 0.3 } }}
           className={`pointer-events-none absolute bottom-0 left-1/2 flex -translate-x-1/2 items-end gap-[1rem] ${reaction.flip ? 'flex-row-reverse' : ''}`}
         >
           <SpeechBubble
+            key={`bubble-${event.n}`}
             src={reaction.bubble}
             alt={reaction.line}
             textClassName={reaction.text}
@@ -81,9 +88,10 @@ export default function GameBoard({ onFinish }) {
           >
             {reaction.text && reaction.line}
           </SpeechBubble>
-          <Chhavi pose={reaction.pose} className="w-[19.3rem]" />
-        </div>
-      )}
+          <Chhavi key={`chhavi-${event.n}`} pose={reaction.pose} className="w-[19.3rem]" />
+        </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

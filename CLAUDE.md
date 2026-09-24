@@ -83,7 +83,8 @@ nothing.
 
 Chhavi's line for a hit, highest priority first: streak ("Three in a Row!"), speed ("Quick
 Eyes!"), clean round clear ("Keep going!": second red flag caught, decoy untouched, not the last
-round), otherwise "Nice catch!".
+round), otherwise "Nice catch!". Every reaction clears after `REACTION_MS` (2.5s) and Chhavi
+fades out, so an idle board doesn't hold a stale line.
 
 `layouts/KioskLayout.jsx` owns the stage, the background, **and the logo** — the logo is
 deliberately not part of any page, because it holds still while screens scale out to a point and

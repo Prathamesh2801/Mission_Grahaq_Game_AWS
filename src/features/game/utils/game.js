@@ -14,6 +14,8 @@ const STREAK_EVERY = 3;
 // Deck: speed bonus "use sparingly". Tapped this fast after the round appears.
 const SPEED_WINDOW_MS = 2000;
 const MAX_SPEED_BONUSES = 5;
+// Chhavi's reaction clears after this long, so an idle board doesn't keep a stale "Too slow" up.
+export const REACTION_MS = 2500;
 
 function shuffle(list) {
   const a = [...list];
@@ -69,7 +71,7 @@ const award = (points, note) => ({
 
 const withFeedback = (state, kind) => ({
   ...state,
-  feedback: { kind, n: (state.feedback?.n ?? 0) + 1 },
+  feedback: { kind, n: (state.feedback?.n ?? 0) + 1, at: state.elapsed },
 });
 
 export const currentItems = (state) => state.rounds[state.round] ?? [];
@@ -154,7 +156,7 @@ function expire(state) {
 }
 
 // Chhavi's reaction deliberately survives the round change: at this pace, clearing it
-// here would cut "Nice catch!" off before anyone could read it.
+// here would cut "Nice catch!" off before anyone could read it. It clears on REACTION_MS instead.
 const advance = (state) => ({
   ...state,
   round: state.round + 1,
@@ -168,6 +170,9 @@ export function reducer(state, action) {
     case "tick": {
       if (state.done) return state;
       const next = { ...state, elapsed: action.elapsed };
+      // keep n so the next reaction still counts up (GameBoard keys and plays sounds on it)
+      if (next.feedback?.kind && next.elapsed - next.feedback.at >= REACTION_MS)
+        next.feedback = { n: next.feedback.n };
       if (next.clearAt === null && next.elapsed - next.roundAt >= ROUND_MS)
         return expire(next);
       if (next.clearAt !== null && next.elapsed - next.clearAt >= REVEAL_MS)

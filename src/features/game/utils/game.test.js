@@ -1,7 +1,7 @@
 // Run with: npm test  (node --test, no framework)
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { buildRounds, currentItems, initialState, reducer, summarize, ROUNDS, ROUND_MS, SLOTS } from './game.js'
+import { buildRounds, currentItems, initialState, reducer, summarize, REACTION_MS, ROUNDS, ROUND_MS, SLOTS } from './game.js'
 import { redFlags, decoys } from '../data/scenarios.js'
 
 const cardText = (i) => i.lines.map(([text]) => text).join(' ')
@@ -144,4 +144,14 @@ test('a perfect game is 10 rounds of two hits, and qualifies', () => {
   const result = summarize(s)
   assert.equal(result.score, 20 * 100 + 6 * 100) // 20 hits + a streak bonus every 3rd
   assert.equal(result.qualified, true)
+})
+
+test("Chhavi's reaction clears after REACTION_MS, keeping its count", () => {
+  let s = fresh()
+  s = reducer(late(s), { type: 'tap', item: reds(s)[0] })
+  const { n, at } = s.feedback
+  s = reducer(s, { type: 'tick', elapsed: at + REACTION_MS - 100 })
+  assert.equal(s.feedback.kind, 'hit') // still up
+  s = reducer(s, { type: 'tick', elapsed: at + REACTION_MS })
+  assert.deepEqual(s.feedback, { n })
 })
