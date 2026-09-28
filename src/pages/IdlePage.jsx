@@ -6,6 +6,7 @@ import Chhavi from '../features/game/components/Chhavi'
 import SpeechBubble from '../features/game/components/SpeechBubble'
 import Stars from '../features/game/components/Stars'
 import { startMusic } from '../features/game/utils/sound'
+import { track } from '../features/game/utils/analytics'
 import tapToPlay from '../assets/ui/tap-to-play.webp'
 import bubbleReady from '../assets/ui/bubble-ready.webp'
 
@@ -21,6 +22,7 @@ export default function IdlePage() {
   const play = (e) => {
     if (leaving) return
     startMusic()
+    track('tap_to_play')
     setTap({ clientX: e.clientX, clientY: e.clientY })
   }
 

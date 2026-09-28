@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import Burst from '../features/game/components/Burst'
 import Chhavi from '../features/game/components/Chhavi'
 import Stars from '../features/game/components/Stars'
+import { track } from '../features/game/utils/analytics'
 import letsGo from '../assets/ui/lets-go.webp'
 
 // Artboard 2: instructions. Positions are artboard pixels ÷ 16.
@@ -33,7 +34,11 @@ export default function HowToPlayPage() {
       </p>
       <button
         type="button"
-        onClick={(e) => leaving || setTap({ clientX: e.clientX, clientY: e.clientY })}
+        onClick={(e) => {
+          if (leaving) return
+          track('game_start')
+          setTap({ clientX: e.clientX, clientY: e.clientY })
+        }}
         className="absolute top-[61.1rem] left-1/2 -translate-x-1/2 active:translate-y-2"
       >
         <img src={letsGo} alt="Let’s go!" draggable={false} className="w-[38rem]" />
