@@ -10,7 +10,14 @@ export default function PlayPage() {
   const start = useCallback(() => setPlaying(true), [])
   const finish = useCallback(
     (result) => {
-      track('game_complete', { score: result.score, result: result.qualified ? 'win' : 'lose' })
+      track('game_complete', {
+        score: result.score,
+        result: result.qualified ? 'win' : 'lose',
+        hits: result.hits,
+        missed: result.missed,
+        wrong_taps: result.wrongTaps,
+        speed_bonuses: result.speedBonuses,
+      })
       navigate('/result', { replace: true, state: result })
     },
     [navigate],

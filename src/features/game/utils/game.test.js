@@ -144,6 +144,20 @@ test('a perfect game is 10 rounds of two hits, and qualifies', () => {
   const result = summarize(s)
   assert.equal(result.score, 20 * 100 + 6 * 100) // 20 hits + a streak bonus every 3rd
   assert.equal(result.qualified, true)
+  assert.equal(result.hits, 20)
+  assert.equal(result.missed, 0)
+  assert.equal(result.wrongTaps, 0)
+})
+
+test('the summary counts misses and wrong taps', () => {
+  let s = fresh()
+  s = reducer(late(s), { type: 'tap', item: currentItems(s).find((i) => !i.isRedFlag) })
+  s = reducer(late(s), { type: 'tap', item: reds(s)[0] })
+  while (!s.done) s = nextRound(s) // everything after the first hit runs out
+  const result = summarize(s)
+  assert.equal(result.hits, 1)
+  assert.equal(result.missed, 19)
+  assert.equal(result.wrongTaps, 1)
 })
 
 test("Chhavi's reaction clears after REACTION_MS, keeping its count", () => {

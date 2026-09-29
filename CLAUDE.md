@@ -105,6 +105,18 @@ its outline is baked into the Lottie by the asset script instead.
 **Result**: the score counts up from 0 at 300 points a second (a 2225 takes ~7.4s; the video's
 200/s felt slow), plain digits with no separators, and the 20s auto-return starts only once it lands.
 
+**Engagement tracking**: `utils/analytics.js`'s `track()` feeds both GA4 (only with
+`VITE_GA_ID`) and the Mission GrahAQ API (`src/config.js`, docs at
+http://192.168.1.88/ministack/Mission_GrahAQ/). One API record per visitor: TAP TO PLAY creates it
+(`game_start: false`), LET'S GO starts it (`true`), the result POST closes it (`"end"`) with score,
+win/lose, hits, misses, wrong taps and the ISO times — the API stores no timestamps of its own.
+The API allows any origin (CORS `*`), so the game calls it directly; `VITE_API_URL` overrides it.
+
+**Admin dashboard**: `#/admin`, outside `KioskLayout`, lazy-loaded so Recharts stays out of the
+game bundle. The `admin` class resets the stage's rem scaling (`index.css`), so ordinary
+Tailwind sizes apply there. Credentials and refresh rate are in `src/config.js`; the gate is
+client-side only. Numbers come from `features/admin/utils/stats.js` (pure, tested).
+
 **Audio**: browsers only allow playback after a user gesture, so `startMusic()` fires on the
 TAP TO PLAY tap in `IdlePage` and loops from there through the whole session. Nothing else
 starts or stops it.

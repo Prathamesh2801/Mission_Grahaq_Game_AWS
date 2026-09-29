@@ -49,6 +49,18 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* #/admin is an ordinary scrolling page, not the stage: plain 16px rem, text selectable. */
+html:has(.admin) {
+  font-size: 16px;
+}
+
+body:has(.admin) {
+  overflow: auto;
+  touch-action: auto;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
 /* Card panel, the artboards' own path: 40% black, 3px black outline, corners stepped twice by
    5.5px. Drawn as a 9-slice so it stretches to any card size without distorting the steps. */
 .card-panel {

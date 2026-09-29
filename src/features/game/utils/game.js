@@ -186,7 +186,15 @@ export function reducer(state, action) {
   }
 }
 
-export const summarize = (state) => ({
-  score: state.score,
-  qualified: state.score >= QUALIFYING_SCORE,
-});
+export function summarize(state) {
+  const reds = state.rounds.flat().filter((i) => i.isRedFlag);
+  const hits = reds.filter((i) => state.resolved[i.id]?.status === "hit").length;
+  return {
+    score: state.score,
+    qualified: state.score >= QUALIFYING_SCORE,
+    hits,
+    missed: reds.length - hits,
+    wrongTaps: state.wrongTaps,
+    speedBonuses: state.speedBonuses,
+  };
+}
