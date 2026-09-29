@@ -1,6 +1,9 @@
 node_modules
 dist
 
+# zipped builds / hand-offs
+*.zip
+
 # Design sources (large .ai/.zip/video and raw audio) live outside the repo
 docs
 
