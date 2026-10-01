@@ -5,6 +5,7 @@ Sources:
   docs/Animations.rar                                     icon sprite sheets
   docs/*.mp3.mpeg                                         music + sound effects
   docs/burst-bubble.json                                  tap burst (Lottie)
+  docs/Landscape.ai                                       1920×1080 artboards (background only)
 
 Re-run whenever any of them change:
     python scripts/prepare-assets.py
@@ -28,6 +29,7 @@ DOCS = ROOT / 'docs'
 ASSETS = ROOT / 'src' / 'assets'
 SCENARIOS = ROOT / 'src' / 'features' / 'game' / 'data' / 'scenarios.js'
 MASTER_ZIP = DOCS / 'FICCI Mascarade_ Interactive Display_Folder_3.zip'
+LANDSCAPE_AI = DOCS / 'Landscape.ai'  # the 1920×1080 artboards; only its background is used
 
 CELL = 128  # sprite output frame size (px)
 COLS = 10  # sprite output grid columns
@@ -97,6 +99,13 @@ UI_VECTORS = {
     # empty bubble shapes for reaction lines the artboards don't letter
     'bubble-blank-1': (2, (270, 120, 790, 450)),
     'bubble-blank-2': (3, (270, 90, 790, 450)),
+}
+# Landscape art that differs from its portrait cut (artboard of docs/Landscape.ai, 1920×1080 box,
+# raster images kept). Everything else is the same art and reuses the portrait file.
+LANDSCAPE_CROPS = {
+    'bubble-ready-landscape': (0, (1400, 340, 1830, 625), False),  # tail points down at her head
+    'fail-headline-landscape': (3, (690, 214, 1250, 375), True),  # deep drop shadow
+    'starts-in-landscape': (4, (650, 180, 1270, 300), True),  # tighter letter spacing
 }
 
 # Card icons as assigned in the artboards (matched on normalised card text, first match wins).
@@ -202,22 +211,26 @@ def render_stream(ai, pno, stream, alpha):
     return to_image(page.get_pixmap(alpha=alpha))
 
 
-def background_groups(ai, pno):
-    """The artboard background is the leading run of full-width groups."""
+def background_groups(ai, pno, min_width=1070, anywhere=False):
+    """The artboard background is the leading run of full-width groups. `anywhere` also takes
+    full-width groups further up the stack: the landscape artboards repeat their sparkle layer
+    over the foreground, which would otherwise land in every crop."""
     stream = pymupdf.open(ai)[pno].read_contents()
     groups = top_level_groups(stream)
     head = stream[: groups[0][0]]
     bg = []
     for a, b in groups:
         box = render_stream(ai, pno, head + stream[a:b], True).getchannel('A').getbbox()
-        if box and box[2] - box[0] < 1070:
+        if box and box[2] - box[0] < min_width:
+            if anywhere:
+                continue
             break
         bg.append((a, b))
     return stream, bg
 
 
 def render_without_background(ai, pno, images=True):
-    stream, bg = background_groups(ai, pno)
+    stream, bg = background_groups(ai, pno, anywhere=ai == LANDSCAPE_AI)
     kept, pos = [], 0
     for a, b in bg:
         kept.append(stream[pos:a])
@@ -287,6 +300,16 @@ def export_ui(ai, out_dir):
     stream, bg = background_groups(ai, 9)
     background = render_stream(ai, 9, stream[: bg[-1][1]], False)
     scrub_strays(background).save(out_dir / 'background.webp', quality=90, method=6)
+    # landscape: its last background group (the far grid) stops short of the edges, hence 1800
+    stream, bg = background_groups(LANDSCAPE_AI, 0, min_width=1800)
+    render_stream(LANDSCAPE_AI, 0, stream[: bg[-1][1]], False).save(out_dir / 'background-landscape.webp', quality=90, method=6)
+    print(f'background-landscape: {len(bg)} groups')
+    for name, (pno, box, images) in LANDSCAPE_CROPS.items():
+        im = render_without_background(LANDSCAPE_AI, pno, images).crop(box)
+        x, y = im.getchannel('A').getbbox()[:2]
+        im = trim(im)
+        im.save(out_dir / f'{name}.webp', lossless=True)
+        print(f'ui {name}: {im.size} at {(box[0] + x, box[1] + y)}')
     rendered = {}
     for name, (pno, box) in UI_CROPS.items():
         if pno not in rendered:

@@ -38,6 +38,15 @@ html {
   font-size: min(100vw / 67.5, 100dvh / 120);
 }
 
+/* On a landscape screen the stage turns 16:9 (the 1920×1080 artboards), still 16 artboard px to
+   the rem. Pages set their landscape positions with Tailwind's `landscape:` variant, which is
+   this same media query. */
+@media (orientation: landscape) {
+  html {
+    font-size: min(100vw / 120, 100dvh / 67.5);
+  }
+}
+
 body {
   margin: 0;
   background: #000;

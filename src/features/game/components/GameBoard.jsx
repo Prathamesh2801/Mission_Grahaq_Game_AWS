@@ -20,6 +20,8 @@ import blankTall from '../../../assets/ui/bubble-blank-2.webp'
 // over her shoulder, side-tailed ones level with her chest, "Too slow" off her other side.
 // "Quick Eyes" and "Three in a Row" aren't lettered in the artboards, so they go on a blank
 // bubble of the same shape.
+// Landscape has room beside the cards instead of below them: the same group, a touch smaller,
+// cheers from the right and groans (wrong tap, too slow) from the left.
 const OVER_SHOULDER = 'mb-[21.5rem] -mr-[5rem]'
 const AT_CHEST = 'mb-[10rem] mr-[2rem]'
 const BLANK_TEXT = 'inset-x-[2rem] top-[1.2rem] bottom-[5.5rem] text-[4.4rem]'
@@ -64,7 +66,8 @@ export default function GameBoard({ onFinish }) {
   }, [state, onFinish])
 
   return (
-    <div className="absolute inset-0">
+    // data-board: the layout moves the logo up while the board is showing
+    <div data-board className="absolute inset-0">
       {items.map((item) => (
         <FeedItem key={item.id} item={item} result={state.resolved[item.id]} onTap={tap} />
       ))}
@@ -77,7 +80,7 @@ export default function GameBoard({ onFinish }) {
         <motion.div
           key="reaction"
           exit={{ opacity: 0, transition: { duration: 0.3 } }}
-          className={`pointer-events-none absolute bottom-0 left-1/2 flex -translate-x-1/2 items-end gap-[1rem] ${reaction.flip ? 'flex-row-reverse' : ''}`}
+          className={`pointer-events-none absolute bottom-0 left-1/2 flex origin-bottom -translate-x-1/2 items-end gap-[1rem] landscape:w-max landscape:scale-[0.85] ${reaction.sound === 'wrong' ? 'landscape:left-[20rem]' : 'landscape:left-[100rem]'} ${reaction.flip ? 'flex-row-reverse' : ''}`}
         >
           <SpeechBubble
             key={`bubble-${event.n}`}

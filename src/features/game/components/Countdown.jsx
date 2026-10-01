@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import Chhavi from './Chhavi'
 import startsIn from '../../../assets/ui/starts-in.webp'
+import startsInLandscape from '../../../assets/ui/starts-in-landscape.webp'
 import digit1 from '../../../assets/ui/digit-1.webp'
 import digit2 from '../../../assets/ui/digit-2.webp'
 import digit3 from '../../../assets/ui/digit-3.webp'
@@ -19,10 +20,11 @@ for (const src of [digit3, digit2, digit1]) {
   img.src = src
   img.decode().catch(() => {})
 }
-// 16.8rem tall, centred at 54rem down the stage.
-const DIGIT_BOX = 'absolute top-[45.6rem] left-1/2 flex h-[16.8rem] -translate-x-1/2 items-center'
+// 16.8rem tall, centred at 54rem down the stage (32.2rem in landscape).
+const DIGIT_BOX =
+  'absolute top-[45.6rem] left-1/2 flex h-[16.8rem] -translate-x-1/2 items-center landscape:top-[23.8rem]'
 
-// "Starts in 3… 2… 1…" (artboards 7–9), Chhavi counting on her fingers.
+// "Starts in 3… 2… 1…" (artboards 7–9; landscape 1920×1080 artboards 8, 1, 14), Chhavi counting on her fingers.
 // Each numeral drops in oversized and springs to rest while the last one shrinks out
 // (popLayout: the two overlap, so the box is never empty). Chhavi's three poses share one crop,
 // placed where artboards 7–9 put it (x 301–765, down to the bottom edge), so swapping the image
@@ -38,7 +40,11 @@ export default function Countdown({ onDone }) {
 
   return (
     <div className="absolute inset-0">
-      <img src={startsIn} alt="Starts in" className="absolute top-[29.9rem] left-1/2 w-[58.8rem] -translate-x-1/2" />
+      {/* the landscape artboards set it with tighter letter spacing */}
+      <picture>
+        <source media="(orientation: landscape)" srcSet={startsInLandscape} />
+        <img src={startsIn} alt="Starts in" className="absolute top-[29.9rem] left-1/2 w-[58.8rem] -translate-x-1/2 landscape:top-[11.95rem] landscape:w-[37.75rem]" />
+      </picture>
       <div className={DIGIT_BOX}>
         <AnimatePresence mode="popLayout">
           <motion.img
@@ -53,7 +59,7 @@ export default function Countdown({ onDone }) {
           />
         </AnimatePresence>
       </div>
-      <Chhavi pose={step.pose} className="absolute bottom-0 left-[18.8rem] w-[29rem]" />
+      <Chhavi pose={step.pose} className="absolute bottom-0 left-[18.8rem] w-[29rem] landscape:left-[80rem]" />
     </div>
   )
 }

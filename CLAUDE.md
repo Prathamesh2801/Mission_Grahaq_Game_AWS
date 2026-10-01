@@ -4,8 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-A 9:16 touch-kiosk game for the FICCI Mascarade "Mission GraHAQ" stand: players tap scam
-messages ("red flags") and leave genuine ones ("decoys") alone. It is a display piece, not a
+A touch-kiosk game for the FICCI Mascarade "Mission GraHAQ" stand, 9:16 on a portrait screen and
+16:9 on a landscape one: players tap scam messages ("red flags") and leave genuine ones ("decoys")
+alone. It is a display piece, not a
 general web app — it runs fullscreen on one screen, has no backend, and no persistence.
 
 ## Commands
@@ -44,6 +45,24 @@ value: a card 637px wide at x=223 becomes `w-[39.8rem] left-[13.9rem]`. Screens 
 elements absolutely from artboard coordinates instead of stacking margins — margins drift, and
 a measured `top-[32.5rem]` is checkable against the video. Never introduce `px`, `vw` or `vh`
 sizing into the stage; it breaks at other window sizes.
+
+**Landscape.** On a landscape screen (`@media (orientation: landscape)`) the stage turns
+120×67.5rem, the 1920×1080 artboards in `docs/FICCI Mascarade_ Interactive Display_1920x1080/`
+(flattened JPGs, exported at 2×), still 16 artboard px to the rem. Every element keeps its portrait
+classes and adds `landscape:` twins measured off those artboards, e.g. `top-[32.5rem] landscape:top-[8.2rem]`.
+The game rules are identical; only placement changes. Those artboards have no gameplay screen: the
+three slots stack in the middle under the logo (which glides to the top centre once the board is
+up), and Chhavi reacts beside them — cheers on the right, wrong taps and misses on the left. The
+few numbers JS needs (card slots, fly-in distances) come from `hooks/useLandscape.js`, the same media
+query. The background is its own 16:9 image (`ui/background-landscape.webp`), rendered by the asset
+script from the background groups of `docs/Landscape.ai`, the master file for these artboards —
+measure landscape positions off it (PyMuPDF gives exact text, image and group boxes), not the JPGs.
+Some landscape art differs from portrait and is cut separately (`LANDSCAPE_CROPS`, `*-landscape.webp`,
+swapped in with `<picture><source media="(orientation: landscape)">`): the idle bubble points down,
+the fail headline has a deeper shadow, STARTS IN is set tighter. The pass screen's win pose is
+mirrored with CSS. Those artboards repeat their sparkle layer over the foreground, so landscape cuts
+drop every full-width group, not just the leading background run. Trap: an absolute box placed near the stage's right edge shrinks to the room left
+before the edge, so a flex row there needs `w-max` (Chhavi's reaction group did this).
 
 ## Tailwind class precedence — this has caused three separate bugs
 

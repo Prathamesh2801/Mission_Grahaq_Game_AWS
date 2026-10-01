@@ -2,15 +2,16 @@ import { memo } from 'react'
 import { motion } from 'framer-motion'
 import Sprite from './Sprite'
 import CoinPopup from './CoinPopup'
+import { useLandscape } from '../hooks/useLandscape'
 import shieldOk from '../../../assets/ui/shield-ok.webp'
 import shieldBad from '../../../assets/ui/shield-bad.webp'
 
 // Card geometry measured off the artboards / final_v1.mp4 (artboard px ÷ 16 = rem).
-const LEFT_REM = 13.9
+// Landscape keeps the card size and stacks the three slots in the middle of the 16:9 stage,
+// under the logo, leaving both sides free for Chhavi.
 const WIDTH_REM = 39.8
-const SLOT_TOP_REM = [23.7, 44.25, 64.3]
-const STAGE_REM = 67.5
-const STAGE_TALL_REM = 120
+const PORTRAIT = { left: 13.9, slotTop: [23.7, 44.25, 64.3], stageW: 67.5, stageH: 120 }
+const LANDSCAPE = { left: (120 - WIDTH_REM) / 2, slotTop: [21, 36.5, 52], stageW: 120, stageH: 67.5 }
 
 // Cards fly in from off-stage rather than fading up, from whichever sides are natural
 // for the slot: the top card never rises from below, the bottom card never drops from
@@ -21,18 +22,18 @@ const ENTRANCES = [
   ['right', 'left'],
   ['bottom', 'left', 'right'],
 ]
-function offStage(slot, round) {
-  const top = SLOT_TOP_REM[slot]
+function offStage(geo, slot, round) {
+  const top = geo.slotTop[slot]
   const sides = ENTRANCES[slot]
   switch (sides[round % sides.length]) {
     case 'left':
-      return { x: `-${LEFT_REM + WIDTH_REM + 2}rem`, y: 0 }
+      return { x: `-${geo.left + WIDTH_REM + 2}rem`, y: 0 }
     case 'right':
-      return { x: `${STAGE_REM - LEFT_REM + 2}rem`, y: 0 }
+      return { x: `${geo.stageW - geo.left + 2}rem`, y: 0 }
     case 'top':
       return { x: 0, y: `-${top + 12}rem` }
     default:
-      return { x: 0, y: `${STAGE_TALL_REM - top + 2}rem` }
+      return { x: 0, y: `${geo.stageH - top + 2}rem` }
   }
 }
 
@@ -41,7 +42,8 @@ function offStage(slot, round) {
 function FeedItem({ item, result, onTap }) {
   const status = result?.status
   const tapped = status === 'hit' || status === 'wrong'
-  const from = offStage(item.slot, item.round)
+  const geo = useLandscape() ? LANDSCAPE : PORTRAIT
+  const from = offStage(geo, item.slot, item.round)
 
   return (
     <motion.button
@@ -66,7 +68,7 @@ function FeedItem({ item, result, onTap }) {
             }
       }
       className="card-panel absolute flex items-center py-[0.9rem] pr-[1.5rem] pl-[0.9rem] text-left"
-      style={{ left: `${LEFT_REM}rem`, top: `${SLOT_TOP_REM[item.slot]}rem`, width: `${WIDTH_REM}rem` }}
+      style={{ left: `${geo.left}rem`, top: `${geo.slotTop[item.slot]}rem`, width: `${WIDTH_REM}rem` }}
     >
       <span className="grid size-[8rem] shrink-0 place-items-center">
         {tapped ? (
