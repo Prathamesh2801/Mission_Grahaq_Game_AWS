@@ -3,6 +3,16 @@ import manifest from '../../../assets/sprites/manifest.json'
 
 const sheets = import.meta.glob('../../../assets/sprites/*.webp', { eager: true, import: 'default' })
 const url = (name) => sheets[`../../../assets/sprites/${name}.webp`]
+// Fetch and decode every sheet up front. Loaded lazily, a round's three sheets (1280px wide,
+// up to 1920 tall) decoded while its cards flew in and stalled the entrance for 50–350ms.
+// The Image objects are kept so the decoded copies stay cached.
+// eslint-disable-next-line no-unused-vars
+const warm = Object.values(sheets).map((src) => {
+  const img = new Image()
+  img.src = src
+  img.decode().catch(() => {})
+  return img
+})
 const FPS = 24
 const SIZE = 8 // rem, the icon box on every card
 

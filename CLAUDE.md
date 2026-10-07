@@ -147,5 +147,7 @@ rather than slicing from y=0, which cut frames in half (a floating half-truck, s
 
 Chhavi's speech bubbles are images cut from the artboards (`ui/bubble-*.webp`), copy included.
 Lines the artboards don't letter go on a `bubble-blank-*` shape with live text over it.
-`card-panel` is the artboards' notched panel path as a 9-slice `border-image` in `src/index.css`;
+`card-panel` is the artboards' notched panel path as a 9-slice `border-image` in `src/index.css`,
+a PNG rather than SVG (an SVG border-image stalled the first card fly-in ~300ms). Sprite sheets are
+fetched and decoded at startup for the same reason: decoding them lazily stalled every round's entrance;
 `pixel-number` is a text-shadow recipe there too.

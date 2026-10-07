@@ -70,12 +70,15 @@ body:has(.admin) {
   -webkit-user-select: text;
 }
 
-/* Card panel, the artboards' own path: 40% black, 3px black outline, corners stepped twice by
-   5.5px. Drawn as a 9-slice so it stretches to any card size without distorting the steps. */
+/* Card panel, the artboards’ own path: 40% black, 3px black outline, corners stepped twice by
+   5.5px. Drawn as a 9-slice so it stretches to any card size without distorting the steps.
+   It is a 2× PNG of the path, not the SVG it was: Chrome rasterized the SVG's slices through
+   round one's fly-in and stalled it for ~300ms. The path, 40×40 viewBox, stroke 3 centred:
+   M12.5 1.5H27.5V7H33V12.5H38.5V27.5H33V33H27.5V38.5H12.5V33H7V27.5H1.5V12.5H7V7H12.5Z */
 .card-panel {
   border: 0 solid;
-  border-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40' shape-rendering='crispEdges'%3E%3Cpath d='M12.5 1.5H27.5V7H33V12.5H38.5V27.5H33V33H27.5V38.5H12.5V33H7V27.5H1.5V12.5H7V7H12.5Z' fill='%23000' fill-opacity='.4' stroke='%23000' stroke-width='3'/%3E%3C/svg%3E")
-    14 fill / 0.875rem;
+  border-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAYAAACOEfKtAAAA3klEQVR42u3cgQ2DQAgFUM64qzM5La5gNJyo7w9g0xfohbbciLpk9MqoeOgSAhAgQIByMesDr7kVP39XgVoYoADseYjki99rVox9KlALAwQIUGLWl4z50Hg2e+xzCmthgADl5CiXGK6PfSpQCwMECFBujXJfG8+mjn0qUAsDBAhQAAIECFAAAgQIUAACBAhQAAIECFAAAoz3/i4cjTYwo+tmpwoECBAgQIk7/5EeP1l3DeuuWhigAOy5rfm1i3ccIloYIEAB2O/mouESWhUIECBAKf1gdYgIQIAAAcqJHKEoEaKo8Rb/AAAAAElFTkSuQmCC")
+    28 fill / 0.875rem;
 }
 
 /* Score / coin numbers: white pixel type with a hard dark drop. */
