@@ -90,7 +90,7 @@ fully unit-tested. `hooks/useGame.js` is the only thing that adds a clock (a 100
 dispatching `tick`). Keep rule changes in `game.js` so the tests can reach them.
 
 The round model: 10 rounds, each showing **3 cards at once in three fixed slots — 2 red flags
-and 1 decoy**, drawn randomly with no repeats from 42 red flags and 20 decoys. A round ends the
+and 1 decoy**, drawn randomly with no repeats from 41 red flags and 20 decoys. A round ends the
 moment **both red flags are caught** — not when all three cards are resolved, since the decoy is
 meant to be left alone and waiting on it would make correct play sit idle — or after 10s,
 whichever comes first, then a ~0.9s reveal beat before the next drops in. Cards do not move
@@ -121,8 +121,8 @@ collapses it from there — the video's swell-then-collapse. Don't put CSS `filt
 that animates during that tap: a `drop-shadow` on the burst stalled the page for up to 600ms, so
 its outline is baked into the Lottie by the asset script instead.
 
-**Result**: the score counts up from 0 at 300 points a second (a 2225 takes ~7.4s; the video's
-200/s felt slow), plain digits with no separators, and the 20s auto-return starts only once it lands.
+**Result**: the final score appears at once in plain digits with no separators (the client dropped
+the video's count-up), and the 20s auto-return starts immediately.
 
 **Engagement tracking**: `utils/analytics.js`'s `track()` feeds both GA4 (only with
 `VITE_GA_ID`) and the Mission GrahAQ API (`src/config.js`, docs at

@@ -26,7 +26,7 @@ function shuffle(list) {
   return a;
 }
 
-// Fresh random draw every game: 20 of the 42 red flags and 10 of the decoys, none repeated.
+// Fresh random draw every game: 20 of the 41 red flags and 10 of the decoys, none repeated.
 export function buildRounds(redFlags, decoys) {
   const reds = shuffle(redFlags);
   const fakes = shuffle(decoys);

@@ -128,6 +128,8 @@ CARD_ICONS = [
     ('returnrefundpolicy', 'recycle'), ('orderready', 'box'), ('productsellerreturn', 'receipt'),
     ('paymentcompletedsecurely', 'card'), ('deliverydetailsavailable', 'truck'),
 ]
+# Cards the artboards still carry but the client cut from the game (normalised text).
+DROPPED_CARDS = {'sellerprofile2331reviews'}  # low-rating seller red flag
 RED_FLAG_ARTBOARDS = range(9, 14)
 DECOY_ARTBOARDS = range(14, 17)
 
@@ -403,7 +405,7 @@ def card_icon(key):
 def extract_cards(ai, artboards):
     """Card copy exactly as set in the artboards: two lines, each regular or bold, unique by text."""
     doc = pymupdf.open(ai)
-    cards, seen = [], set()
+    cards, seen = [], set(DROPPED_CARDS)
     for pno in artboards:
         spans = [
             (round(s['bbox'][0]), round(s['bbox'][1]), 'Bold' in s['font'], s['text'])

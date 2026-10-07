@@ -43,7 +43,6 @@ export const redFlags = [
   { icon: 'coin', lines: [["50% extra off.", false], ["Pay seller directly.", true]] },
   { icon: 'PriceTag', lines: [["Big brands. Unbelievable price.", false], ["Buy now!", true]] },
   { icon: 'star', lines: [["Official account. Huge discount.", false], ["Buy now.", true]] },
-  { icon: 'badge', lines: [["Seller Profile", true], ["2.3★ | 31 reviews", false]] },
 ]
 
 export const decoys = [

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router'
 import Chhavi from '../features/game/components/Chhavi'
 import SpeechBubble from '../features/game/components/SpeechBubble'
@@ -13,11 +13,8 @@ import qr from '../assets/ui/qr.webp'
 import bubblePass from '../assets/ui/bubble-pass.webp'
 import bubbleFail from '../assets/ui/bubble-fail.webp'
 
+// The score shows at once (the client dropped the video's count-up), so the idle countdown starts now.
 const IDLE_AFTER_MS = 20_000
-// The score counts up from 0 at a steady rate, like docs/final_v2_win.mp4 but half again as
-// fast (the video's 200/s kept people waiting): 300 points a second, so 2225 lands in ~7.4s.
-// The idle countdown starts only once it lands.
-const COUNT_PER_MS = 0.3
 
 // Artboards 5 (qualified) and 6 (try again); landscape, 1920×1080 artboards 6 and 7.
 // Tap anywhere, or wait, to hand over to the next player.
@@ -71,27 +68,11 @@ const PIN = 'landscape:absolute landscape:inset-x-0 landscape:mx-auto landscape:
 export default function ResultPage() {
   const navigate = useNavigate()
   const result = useLocation().state
-  const scoreRef = useRef(null)
 
   useEffect(() => {
     if (!result) return
-    const { score } = result
-    let frame, idle
-    const landed = () => (idle = setTimeout(() => navigate('/', { replace: true }), IDLE_AFTER_MS))
-    const start = performance.now()
-    // written straight to the node: a React render per frame for ~11s buys nothing
-    const tick = (now) => {
-      const shown = Math.min(score, Math.floor((now - start) * COUNT_PER_MS))
-      scoreRef.current.textContent = shown
-      if (shown < score) frame = requestAnimationFrame(tick)
-      else landed()
-    }
-    if (score > 0) frame = requestAnimationFrame(tick)
-    else landed()
-    return () => {
-      cancelAnimationFrame(frame)
-      clearTimeout(idle)
-    }
+    const idle = setTimeout(() => navigate('/', { replace: true }), IDLE_AFTER_MS)
+    return () => clearTimeout(idle)
   }, [result, navigate])
 
   if (!result) return <Navigate to="/" replace />
@@ -109,8 +90,8 @@ export default function ResultPage() {
         <img src={copy.headline} alt="" className={`mt-[0.75rem] ${PIN} ${copy.headlineClass}`} />
       </picture>
       <img src={yourScore} alt="Your score" className={`mt-[5.5rem] w-[35.3rem] ${PIN} landscape:top-[24.4rem] landscape:w-[20.2rem]`} />
-      <p ref={scoreRef} className={`pixel-number mt-[1.5rem] text-[6.25rem] leading-none ${PIN} landscape:top-[27.25rem] landscape:text-[3.6rem]`}>
-        {Math.min(result.score, 0)}
+      <p className={`pixel-number mt-[1.5rem] text-[6.25rem] leading-none ${PIN} landscape:top-[27.25rem] landscape:text-[3.6rem]`}>
+        {result.score}
       </p>
       <Stars className={`mt-[1.6rem] ${PIN} landscape:top-[32.1rem] landscape:w-[6.7rem]`} />
       <p className={`mt-[0.6rem] text-[2.25rem] leading-snug ${PIN} landscape:top-[35.8rem] landscape:leading-[1.2] ${copy.bodyClass ?? ''}`}>{copy.body}</p>
