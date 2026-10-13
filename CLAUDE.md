@@ -19,7 +19,7 @@ npm test                # node --test, no framework
 node --test src/features/game/utils/game.test.js          # one file
 node --test --test-name-pattern 'scoring' src/features/game/utils/game.test.js   # one test
 
-python scripts/prepare-assets.py   # regenerate everything under src/assets + scenarios.js
+python scripts/prepare-assets.py   # regenerate everything under src/assets
 ```
 
 ## The design is the source of truth, and it lives outside the repo
@@ -30,10 +30,14 @@ is gitignored**, so a clone can build and run but cannot regenerate assets. When
 looks wrong, measure it against `final_v2_win.mp4` (ffmpeg is available) rather than guessing.
 (Older comments cite `final_v1.mp4`, the capture it replaced.)
 
-Everything under `src/assets/` and `src/features/game/data/scenarios.js` is **generated** by
-`scripts/prepare-assets.py` from those sources. Do not hand-edit them; change the crop boxes or
+Everything under `src/assets/` is **generated** by `scripts/prepare-assets.py` from those
+sources. Do not hand-edit it; change the crop boxes or
 mappings in the script and re-run it. The script also scrubs a stray dark panel that the
 artboard bakes into the background image.
+
+Card copy is the exception: `src/features/game/data/scenarios.js` is hand-maintained from the
+client's revised question bank (Oct 2026), which no longer matches the artboards. Cards the client's
+bank left out are kept at the end of each list under a comment, pending removal.
 
 ## Coordinate system
 
@@ -90,7 +94,7 @@ fully unit-tested. `hooks/useGame.js` is the only thing that adds a clock (a 100
 dispatching `tick`). Keep rule changes in `game.js` so the tests can reach them.
 
 The round model: 10 rounds, each showing **3 cards at once in three fixed slots — 2 red flags
-and 1 decoy**, drawn randomly with no repeats from 41 red flags and 20 decoys. A round ends the
+and 1 decoy**, drawn randomly with no repeats from 41 red flags and 27 decoys. A round ends the
 moment **both red flags are caught** — not when all three cards are resolved, since the decoy is
 meant to be left alone and waiting on it would make correct play sit idle — or after 10s,
 whichever comes first, then a ~0.9s reveal beat before the next drops in. Cards do not move

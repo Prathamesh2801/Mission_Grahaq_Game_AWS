@@ -84,9 +84,9 @@ function FeedItem({ item, result, onTap }) {
           <Sprite name={item.icon} />
         )}
       </span>
-      <span className="ml-[3.2rem] leading-tight">
+      <span className="ml-[3.2rem] min-w-0 leading-tight">
         {item.lines.map(([text, bold]) => (
-          <span key={text} className={`block whitespace-nowrap ${bold ? 'text-[1.8rem] font-bold' : 'text-[1.4rem]'}`}>
+          <span key={text} className={`block ${bold ? 'text-[1.8rem] font-bold' : 'text-[1.4rem]'}`}>
             {text}
           </span>
         ))}

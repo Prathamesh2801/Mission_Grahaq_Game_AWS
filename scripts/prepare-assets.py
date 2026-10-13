@@ -27,7 +27,6 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parent.parent
 DOCS = ROOT / 'docs'
 ASSETS = ROOT / 'src' / 'assets'
-SCENARIOS = ROOT / 'src' / 'features' / 'game' / 'data' / 'scenarios.js'
 MASTER_ZIP = DOCS / 'FICCI Mascarade_ Interactive Display_Folder_3.zip'
 LANDSCAPE_AI = DOCS / 'Landscape.ai'  # the 1920×1080 artboards; only its background is used
 
@@ -107,31 +106,6 @@ LANDSCAPE_CROPS = {
     'fail-headline-landscape': (3, (690, 214, 1250, 375), True),  # deep drop shadow
     'starts-in-landscape': (4, (650, 180, 1270, 300), True),  # tighter letter spacing
 }
-
-# Card icons as assigned in the artboards (matched on normalised card text, first match wins).
-CARD_ICONS = [
-    ('accountlocked', 'lock'), ('deliverydelayed', 'box'), ('refundpending', 'card'), ('paymentfailed', 'link'),
-    ('amazzon', 'globe'), ('urgentaccount', 'lock'), ('refundready', 'receipt'), ('confirmidentity', 'box'),
-    ('payviaqr', 'card'), ('payoutside', 'PriceTag'), ('usethislinktocomplete', 'link'), ('scanqr', 'receipt'),
-    ('paymentsystemdown', 'card'), ('verifybank', 'bank'), ('shareotp', 'moblie'), ('sendcvv', 'card'),
-    ('personalupi', 'moblie'), ('unlockoffer', 'box'), ('10minutes', 'clock'), ('clicknow', 'siren'),
-    ('refundexpires', 'coin'), ('5minutes', 'clock'), ('confirmdetails', 'lock'), ('completepaymentnow', 'siren'),
-    ('megaoffer', 'PriceTag'), ('parcelwillbereturned', 'box'), ('codparcel', 'box'), ('familymember', 'coin'),
-    ('unpaidfee', 'truck'), ('deliveryfailed', 'truck'), ('parcelwaiting', 'box'), ('beforeopening', 'box'),
-    ('10000', 'PriceTag'), ('90off', 'present'), ('luxurywatch', 'watch'), ('smartphone', 'moblie'),
-    ('exclusivedeal', 'link'), ('freeproduct', 'present'), ('50extra', 'coin'), ('bigbrands', 'PriceTag'),
-    ('officialaccount', 'star'), ('sellerprofile', 'badge'), ('ordershipped', 'box'), ('arrivingtomorrow', 'truck'),
-    ('deliverycompleted', 'box'), ('orderstatus', 'moblie'), ('viewdeliverydetails', 'truck'),
-    ('productspecifications', 'receipt'), ('productreviews', 'star'), ('returnexchange', 'recycle'),
-    ('sellerinformation', 'badge'), ('paymentsuccessful', 'card'), ('refundinitiated', 'receipt'),
-    ('viewpaymentdetails', 'moblie'), ('needhelp', 'moblie'), ('supportticket', 'chat'),
-    ('returnrefundpolicy', 'recycle'), ('orderready', 'box'), ('productsellerreturn', 'receipt'),
-    ('paymentcompletedsecurely', 'card'), ('deliverydetailsavailable', 'truck'),
-]
-# Cards the artboards still carry but the client cut from the game (normalised text).
-DROPPED_CARDS = {'sellerprofile2331reviews'}  # low-rating seller red flag
-RED_FLAG_ARTBOARDS = range(9, 14)
-DECOY_ARTBOARDS = range(14, 17)
 
 
 # ---------- sprites ----------
@@ -386,66 +360,6 @@ def outline_lottie(src, dst, width=10, color=(0.227, 0.027, 0.086, 1), fill=(1, 
     dst.write_text(json.dumps(data, separators=(',', ':')), encoding='utf8')
 
 
-def normalise(text):
-    return re.sub(r'[^a-z0-9]', '', text.lower())
-
-
-def clean(text):
-    text = text.replace('ﬁ', 'fi').replace('ﬂ', 'fl').strip()
-    return re.sub(r'\s{3,}', '★ ', text)  # star glyph is drawn as an icon in the artboard
-
-
-def card_icon(key):
-    for fragment, icon in CARD_ICONS:
-        if fragment in key:
-            return icon
-    raise SystemExit(f'No icon mapped for card "{key}", add it to CARD_ICONS')
-
-
-def extract_cards(ai, artboards):
-    """Card copy exactly as set in the artboards: two lines, each regular or bold, unique by text."""
-    doc = pymupdf.open(ai)
-    cards, seen = [], set(DROPPED_CARDS)
-    for pno in artboards:
-        spans = [
-            (round(s['bbox'][0]), round(s['bbox'][1]), 'Bold' in s['font'], s['text'])
-            for b in doc[pno].get_text('dict')['blocks'] for l in b.get('lines', []) for s in l['spans']
-            if s['text'].strip() and s['size'] < 40 and 'CoFo' not in s['font']
-        ]
-        spans.sort(key=lambda s: (s[0] // 50, s[1]))
-        groups = []
-        for s in spans:
-            last = groups[-1][-1] if groups else None
-            if last and abs(last[0] - s[0]) < 30 and 0 <= s[1] - last[1] < 45:
-                groups[-1].append(s)
-            else:
-                groups.append([s])
-        for g in sorted(groups, key=lambda g: (g[0][1], g[0][0])):
-            lines = [{'text': clean(s[3]), 'bold': s[2]} for s in g]
-            key = normalise(''.join(l['text'] for l in lines))
-            if key not in seen:
-                seen.add(key)
-                cards.append({'icon': card_icon(key), 'lines': lines})
-    return cards
-
-
-def write_scenarios(red_flags, decoys):
-    def js(cards):
-        rows = []
-        for c in cards:
-            lines = ', '.join(f"[{json.dumps(l['text'], ensure_ascii=False)}, {'true' if l['bold'] else 'false'}]" for l in c['lines'])
-            rows.append(f"  {{ icon: '{c['icon']}', lines: [{lines}] }},")
-        return '\n'.join(rows)
-
-    SCENARIOS.write_text(
-        '// GENERATED by scripts/prepare-assets.py from the master .ai artboards; edit the artboards, not this file.\n'
-        '// Each card: sprite icon + two lines of [text, bold] exactly as designed.\n\n'
-        f'export const redFlags = [\n{js(red_flags)}\n]\n\nexport const decoys = [\n{js(decoys)}\n]\n',
-        encoding='utf8',
-    )
-    print(f'scenarios: {len(red_flags)} red flags, {len(decoys)} decoys')
-
-
 def main():
     with tempfile.TemporaryDirectory() as tmp:
         tmp = Path(tmp)
@@ -483,7 +397,6 @@ def main():
         ui.mkdir(parents=True)
         export_ui(ai, ui)
 
-        write_scenarios(extract_cards(ai, RED_FLAG_ARTBOARDS), extract_cards(ai, DECOY_ARTBOARDS))
 
     audio = ASSETS / 'audio'
     audio.mkdir(parents=True, exist_ok=True)
