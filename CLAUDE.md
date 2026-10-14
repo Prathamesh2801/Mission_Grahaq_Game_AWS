@@ -128,6 +128,11 @@ its outline is baked into the Lottie by the asset script instead.
 **Result**: the final score appears at once in plain digits with no separators (the client dropped
 the video's count-up), and the 20s auto-return starts immediately.
 
+**Screensaver**: `#/screensaver`, the QR-handbook artboard (`docs/FICCI Mascarade_ Chavvi qr code_Folder.zip`,
+portrait only; the landscape layout is ours). `KioskLayout` sends an untouched start or how-to-play
+screen there after `SCREENSAVER_AFTER_MS` (`src/config.js`), never mid-game. It stops the music; a tap
+anywhere returns to the start screen. `python scripts/prepare-assets.py saver` re-cuts just its art.
+
 **Engagement tracking**: `utils/analytics.js`'s `track()` feeds both GA4 (only with
 `VITE_GA_ID`) and the Mission GrahAQ API (`src/config.js`, docs at
 http://192.168.1.88/ministack/Mission_GrahAQ/). One API record per visitor: TAP TO PLAY creates it
@@ -141,8 +146,8 @@ Tailwind sizes apply there. Credentials and refresh rate are in `src/config.js`;
 client-side only. Numbers come from `features/admin/utils/stats.js` (pure, tested).
 
 **Audio**: browsers only allow playback after a user gesture, so `startMusic()` fires on the
-TAP TO PLAY tap in `IdlePage` and loops from there through the whole session. Nothing else
-starts or stops it.
+TAP TO PLAY tap in `IdlePage` and loops from there through the whole session. Only the
+screensaver stops it (`stopMusic()`); the next TAP TO PLAY restarts it from the top.
 
 Card icons are the designer's sprite sheets, repacked by the asset script. Each is an entrance
 that ends on a settled pose, so `Sprite` plays it once as the card arrives and holds the last

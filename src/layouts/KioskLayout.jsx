@@ -1,5 +1,7 @@
-import { useLocation, useOutlet } from 'react-router'
+import { useEffect } from 'react'
+import { useLocation, useNavigate, useOutlet } from 'react-router'
 import { AnimatePresence, motion } from 'framer-motion'
+import { SCREENSAVER_AFTER_MS } from '../config'
 import background from '../assets/ui/background.webp'
 import backgroundLandscape from '../assets/ui/background-landscape.webp'
 import logo from '../assets/ui/logo.webp'
@@ -18,6 +20,25 @@ import logo from '../assets/ui/logo.webp'
 export default function KioskLayout() {
   const { pathname } = useLocation()
   const outlet = useOutlet()
+  const navigate = useNavigate()
+
+  // An untouched start or how-to-play screen gives way to the screensaver; any tap restarts the
+  // wait. Mid-game it never fires (a player may just be watching), and the result screen already
+  // returns to the start screen by itself.
+  useEffect(() => {
+    if (pathname !== '/' && pathname !== '/how-to-play') return
+    let id
+    const wait = () => {
+      clearTimeout(id)
+      id = setTimeout(() => navigate('/screensaver', { replace: true }), SCREENSAVER_AFTER_MS)
+    }
+    wait()
+    window.addEventListener('pointerdown', wait)
+    return () => {
+      clearTimeout(id)
+      window.removeEventListener('pointerdown', wait)
+    }
+  }, [pathname, navigate])
 
   return (
     <div className="flex h-dvh items-center justify-center" onContextMenu={(e) => e.preventDefault()}>

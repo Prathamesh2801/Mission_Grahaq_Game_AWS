@@ -6,16 +6,20 @@ Sources:
   docs/*.mp3.mpeg                                         music + sound effects
   docs/burst-bubble.json                                  tap burst (Lottie)
   docs/Landscape.ai                                       1920×1080 artboards (background only)
+  docs/FICCI Mascarade_ Chavvi qr code_Folder.zip         screensaver artboard (QR handbook)
 
 Re-run whenever any of them change:
     python scripts/prepare-assets.py
+    python scripts/prepare-assets.py saver   # just the screensaver art
 Needs Pillow, NumPy, PyMuPDF and the Windows/bsdtar `tar` (reads .rar).
 """
+import io
 import json
 import re
 import shutil
 import statistics
 import subprocess
+import sys
 import tempfile
 import zipfile
 from pathlib import Path
@@ -29,6 +33,7 @@ DOCS = ROOT / 'docs'
 ASSETS = ROOT / 'src' / 'assets'
 MASTER_ZIP = DOCS / 'FICCI Mascarade_ Interactive Display_Folder_3.zip'
 LANDSCAPE_AI = DOCS / 'Landscape.ai'  # the 1920×1080 artboards; only its background is used
+SAVER_ZIP = DOCS / 'FICCI Mascarade_ Chavvi qr code_Folder.zip'  # one 1080×1920 artboard, no landscape twin
 
 CELL = 128  # sprite output frame size (px)
 COLS = 10  # sprite output grid columns
@@ -320,6 +325,35 @@ def export_chhavi(links, out_dir):
         im.save(out_dir / f'{pose}.webp', quality=88, method=6)
 
 
+def export_saver(tmp):
+    """The screensaver artboard. Its background and logo are the stage's own, so only the
+    foreground is cut. The bubble's outline sits in a full-width group with the sky, so it is
+    redrawn from its vector paths and the lettering laid back over it."""
+    with zipfile.ZipFile(SAVER_ZIP) as z:
+        names = [n for n in z.namelist() if not n.startswith('__MACOSX')]
+        (tmp / 'saver.ai').write_bytes(z.read(next(n for n in names if n.endswith('.ai'))))
+        chhavi = Image.open(io.BytesIO(z.read(next(n for n in names if n.endswith('/Links/Unknown 1.png'))))).convert('RGBA')
+    ai = str(tmp / 'saver.ai')
+    ui = ASSETS / 'ui'
+    fg = render_without_background(ai, 0)
+    for name, box in {'saver-headline': (150, 330, 930, 490), 'saver-qr': (240, 480, 840, 1060)}.items():
+        im = fg.crop(box)
+        x, y = im.getchannel('A').getbbox()[:2]
+        im = trim(im)
+        im.save(ui / f'{name}.webp', lossless=True)
+        print(f'ui {name}: {im.size} at {(box[0] + x, box[1] + y)}')
+    box = (60, 1100, 680, 1300)
+    im = render_vectors(ai, 0, box)
+    im.alpha_composite(render_without_background(ai, 0, images=False).crop(box))
+    x, y = im.getchannel('A').getbbox()[:2]
+    im = trim(im)
+    im.save(ui / 'bubble-handbook.webp', lossless=True)
+    print(f'ui bubble-handbook: {im.size} at {(box[0] + x, box[1] + y)}')
+    # placed at (417, 1160), 796 px wide, running off the artboard's bottom right
+    chhavi.save(ASSETS / 'chhavi' / 'point.webp', quality=88, method=6)
+    print(f'chhavi point: {chhavi.size}, bbox {chhavi.getchannel("A").getbbox()}')
+
+
 def outline_lottie(src, dst, width=10, color=(0.227, 0.027, 0.086, 1), fill=(1, 0.949, 0.749, 1)):
     """The burst's orange is the same as TAP TO PLAY and the horizon band behind both buttons,
     so recolour every stroke to `fill` (a gold-tinted white) and give each a dark maroon
@@ -396,7 +430,7 @@ def main():
         shutil.rmtree(ui, ignore_errors=True)
         ui.mkdir(parents=True)
         export_ui(ai, ui)
-
+        export_saver(tmp)
 
     audio = ASSETS / 'audio'
     audio.mkdir(parents=True, exist_ok=True)
@@ -408,4 +442,8 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    if sys.argv[1:] == ['saver']:
+        with tempfile.TemporaryDirectory() as tmp:
+            export_saver(Path(tmp))
+    else:
+        main()

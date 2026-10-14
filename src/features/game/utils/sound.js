@@ -18,3 +18,8 @@ export function startMusic() {
 export function playSfx(name) {
   sfx[name].cloneNode().play().catch(ignore)
 }
+
+// The screensaver silences the stand; the next TAP TO PLAY starts it again from the top.
+export function stopMusic() {
+  music.pause()
+}

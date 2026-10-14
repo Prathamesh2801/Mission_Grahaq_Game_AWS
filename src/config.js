@@ -13,3 +13,6 @@ export const ADMIN = { username: "admin123", password: "admin123" };
 
 // How often the dashboard re-reads the API.
 export const REFRESH_MS = 15_000;
+
+// No taps for this long on the start or how-to-play screen shows the QR screensaver.
+export const SCREENSAVER_AFTER_MS = 60_000;
