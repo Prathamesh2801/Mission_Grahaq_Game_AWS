@@ -110,7 +110,7 @@ export const redFlags = [
   {
     icon: "card",
     lines: [
-      ["Pay via this QR code sent on WhatsApp", false],
+      ["Pay via the QR code sent on WhatsApp", false],
       ["to complete your order.", true],
     ],
   },
