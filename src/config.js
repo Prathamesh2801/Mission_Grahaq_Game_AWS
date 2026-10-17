@@ -5,7 +5,7 @@
 // export const API_URL = import.meta.env?.VITE_API_URL ?? 'http://192.168.1.88/ministack/Mission_GrahAQ/api.php'
 export const API_URL =
   import.meta.env?.VITE_API_URL ??
-  "https://missiongrahaq.theeventpics.com/API/api.php";
+  "https://missiongrahaq.in/API/api.php";
 
 // Admin dashboard at #/admin. This gate lives in the browser bundle, so it keeps casual
 // visitors out, not attackers: the API itself answers ?all=1 to anyone on the network.
