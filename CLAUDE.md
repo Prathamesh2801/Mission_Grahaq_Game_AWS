@@ -30,6 +30,11 @@ is gitignored**, so a clone can build and run but cannot regenerate assets. When
 looks wrong, measure it against `final_v2_win.mp4` (ffmpeg is available) rather than guessing.
 (Older comments cite `final_v1.mp4`, the capture it replaced.)
 
+**This AWS copy of the repo has only `docs/aws-game/`** — the Amazon start-screen artboard
+(`FICCI Mascarade_ Interactive Display 1920 X 1080 1.ai`, landscape only, plus its fonts, which are
+the same files already in `src/assets/fonts`). The older sources above are not here, so a full
+`prepare-assets.py` run fails; `python scripts/prepare-assets.py aws` re-cuts just that screen's art.
+
 Everything under `src/assets/` is **generated** by `scripts/prepare-assets.py` from those
 sources. Do not hand-edit it; change the crop boxes or
 mappings in the script and re-run it. The script also scrubs a stray dark panel that the
@@ -54,7 +59,8 @@ sizing into the stage; it breaks at other window sizes.
 120×67.5rem, the 1920×1080 artboards in `docs/FICCI Mascarade_ Interactive Display_1920x1080/`
 (flattened JPGs, exported at 2×), still 16 artboard px to the rem. Every element keeps its portrait
 classes and adds `landscape:` twins measured off those artboards, e.g. `top-[32.5rem] landscape:top-[8.2rem]`.
-The game rules are identical; only placement changes. Those artboards have no gameplay screen: the
+The game rules are identical; only placement changes, except the start screen: landscape uses the
+Amazon artboard (see **Start taps**), which folds How to Play into it. Those artboards have no gameplay screen: the
 three slots stack in the middle under the logo (which glides to the top centre once the board is
 up), and Chhavi reacts beside them — cheers on the right, wrong taps and misses on the left. The
 few numbers JS needs (card slots, fly-in distances) come from `hooks/useLandscape.js`, the same media
@@ -96,7 +102,7 @@ dispatching `tick`). Keep rule changes in `game.js` so the tests can reach them.
 The round model: 10 rounds, each showing **3 cards at once in three fixed slots — 2 red flags
 and 1 decoy**, drawn randomly with no repeats from 41 red flags and 27 decoys. A round ends the
 moment **both red flags are caught** — not when all three cards are resolved, since the decoy is
-meant to be left alone and waiting on it would make correct play sit idle — or after 10s,
+meant to be left alone and waiting on it would make correct play sit idle — or after 15s,
 whichever comes first, then a ~0.9s reveal beat before the next drops in. Cards do not move
 between slots; earlier versions floated them up the screen, which is wrong.
 
@@ -117,8 +123,10 @@ that `AnimatePresence`.
 `pages/` are the four screens (idle → how-to-play → play → result); `PlayPage` just switches
 `Countdown` for `GameBoard`.
 
-**Start taps**: on the idle and how-to-play screens only the TAP TO PLAY art and the LET'S GO
-button advance, never a tap elsewhere. The tap plays `Burst` — the designer's Lottie
+**Start taps**: in portrait, on the idle and how-to-play screens only the TAP TO PLAY art and the
+LET'S GO button advance, never a tap elsewhere. In landscape the start screen is the Amazon artboard
+(Amazon logo top left, the stage logo moved top right via `data-start`, rules panel, scoring): a tap
+anywhere on it goes straight to the countdown, and the How to Play screen is never shown. The tap plays `Burst` — the designer's Lottie
 (`docs/burst-bubble.json`, played by `lottie-web`'s light build) — at the finger, and swells the
 page to 1.1× over 0.4s; the page navigates only when that finishes, and the layout's 0.45s exit
 collapses it from there — the video's swell-then-collapse. Don't put CSS `filter`s on anything
@@ -136,7 +144,7 @@ anywhere returns to the start screen. `python scripts/prepare-assets.py saver` r
 **Engagement tracking**: `utils/analytics.js`'s `track()` feeds both GA4 (only with
 `VITE_GA_ID`) and the Mission GrahAQ API (`src/config.js`, docs at
 http://192.168.1.88/ministack/Mission_GrahAQ/). One API record per visitor: TAP TO PLAY creates it
-(`game_start: false`), LET'S GO starts it (`true`), the result POST closes it (`"end"`) with score,
+(`game_start: false`), LET'S GO starts it (`true`; the landscape start tap sends both at once), the result POST closes it (`"end"`) with score,
 win/lose, hits, misses, wrong taps and the ISO times — the API stores no timestamps of its own.
 The API allows any origin (CORS `*`), so the game calls it directly; `VITE_API_URL` overrides it.
 

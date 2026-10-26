@@ -7,10 +7,12 @@ Sources:
   docs/burst-bubble.json                                  tap burst (Lottie)
   docs/Landscape.ai                                       1920×1080 artboards (background only)
   docs/FICCI Mascarade_ Chavvi qr code_Folder.zip         screensaver artboard (QR handbook)
+  docs/aws-game/…1920 X 1080 1.ai                         Amazon landscape start screen
 
 Re-run whenever any of them change:
     python scripts/prepare-assets.py
     python scripts/prepare-assets.py saver   # just the screensaver art
+    python scripts/prepare-assets.py aws     # just the Amazon start screen art
 Needs Pillow, NumPy, PyMuPDF and the Windows/bsdtar `tar` (reads .rar).
 """
 import io
@@ -34,6 +36,7 @@ ASSETS = ROOT / 'src' / 'assets'
 MASTER_ZIP = DOCS / 'FICCI Mascarade_ Interactive Display_Folder_3.zip'
 LANDSCAPE_AI = DOCS / 'Landscape.ai'  # the 1920×1080 artboards; only its background is used
 SAVER_ZIP = DOCS / 'FICCI Mascarade_ Chavvi qr code_Folder.zip'  # one 1080×1920 artboard, no landscape twin
+AWS_AI = DOCS / 'aws-game' / 'FICCI Mascarade_ Interactive Display 1920 X 1080 1.ai'  # one 1920×1080 artboard, no portrait twin
 
 CELL = 128  # sprite output frame size (px)
 COLS = 10  # sprite output grid columns
@@ -354,6 +357,26 @@ def export_saver(tmp):
     print(f'chhavi point: {chhavi.size}, bbox {chhavi.getchannel("A").getbbox()}')
 
 
+def export_aws():
+    """The Amazon start screen (landscape only): Tap to Play and How to Play on one artboard.
+    Its background, logo, stars and Chhavi are the stage's own, and its headings are live text,
+    so only these are cut. The rules panel keeps its copy baked in. Isolating layer groups
+    instead of cropping drops their clip paths (the HOW TO PLAY gradient floods the page)."""
+    fg = render_without_background(str(AWS_AI), 0)
+    crops = {
+        'amazon-logo': (50, 50, 365, 170),
+        'how-to-play': (250, 420, 645, 625),
+        'tap-screen': (175, 690, 745, 855),
+        'rules-panel': (765, 340, 1680, 705),
+    }
+    for name, box in crops.items():
+        im = fg.crop(box)
+        x, y = im.getchannel('A').getbbox()[:2]
+        im = trim(im)
+        im.save(ASSETS / 'ui' / f'{name}.webp', lossless=True)
+        print(f'ui {name}: {im.size} at {(box[0] + x, box[1] + y)}')
+
+
 def outline_lottie(src, dst, width=10, color=(0.227, 0.027, 0.086, 1), fill=(1, 0.949, 0.749, 1)):
     """The burst's orange is the same as TAP TO PLAY and the horizon band behind both buttons,
     so recolour every stroke to `fill` (a gold-tinted white) and give each a dark maroon
@@ -431,6 +454,7 @@ def main():
         ui.mkdir(parents=True)
         export_ui(ai, ui)
         export_saver(tmp)
+        export_aws()
 
     audio = ASSETS / 'audio'
     audio.mkdir(parents=True, exist_ok=True)
@@ -445,5 +469,7 @@ if __name__ == '__main__':
     if sys.argv[1:] == ['saver']:
         with tempfile.TemporaryDirectory() as tmp:
             export_saver(Path(tmp))
+    elif sys.argv[1:] == ['aws']:
+        export_aws()
     else:
         main()

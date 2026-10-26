@@ -25,7 +25,7 @@ export function track(name, params) {
 }
 
 // One API record per visitor: created on TAP TO PLAY (game_start false), marked started on
-// LET'S GO (true), closed with the result (end). A record left at false is someone who read
+// LET'S GO (true) — the landscape start screen sends both on one tap — closed with the result (end). A record left at false is someone who read
 // the instructions and walked away. The API stores no times, so they ride along with the result.
 // Calls chain on `session` (a promise of the record id) so a quick LET'S GO waits for the create.
 let session = Promise.resolve(null)

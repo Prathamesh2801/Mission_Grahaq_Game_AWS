@@ -9,12 +9,12 @@ import logo from '../assets/ui/logo.webp'
 // Fixed stage, letterboxed on any screen, with the synthwave backdrop from the artboards:
 // 9:16 on a portrait screen, 16:9 on a landscape one (docs/…_1920x1080).
 // The logo is part of the stage, not the pages: it holds still while screens scale in and out.
-// In landscape it sits left of the idle, how-to and countdown screens and glides to the top
-// centre once the game board is up (the card artboards' spot), clearing both sides for Chhavi.
-// Only that move animates (the transition lives on the board state): a window resize snaps.
-// The move is translate + scale from the side box (top-left origin: 3.2rem→49rem, 24.6rem→6.1rem,
-// 29rem→21.9rem wide), never top/left/width: those animate on the main thread, which is busy
-// mounting the board right then, so the glide stalled and jumped. Transforms run on the compositor.
+// In landscape it sits top right on the Amazon start screen (data-start), left of the countdown,
+// and glides to the top centre once the game board is up (the card artboards' spot), clearing
+// both sides for Chhavi. Each move is translate + scale from the side box (top-left origin:
+// board 3.2rem→49rem, 24.6rem→6.1rem, 29rem→21.9rem wide; start →96.9rem, 2.1rem, 20.3rem wide),
+// never top/left/width: those animate on the main thread, which is busy mounting the board right
+// then, so the glide stalled and jumped. Transforms run on the compositor.
 // It sits above the pages: round one's top card drops in from above and would otherwise cut
 // through it mid-glide.
 export default function KioskLayout() {
@@ -50,7 +50,7 @@ export default function KioskLayout() {
           <img
             src={logo}
             alt="Mission GraHAQ"
-            className="absolute top-[4.1rem] left-1/2 z-10 w-[35.2rem] -translate-x-1/2 landscape:top-[24.6rem] landscape:left-[3.2rem] landscape:w-[29rem] landscape:origin-top-left landscape:translate-x-0 landscape:will-change-transform landscape:group-has-[[data-board]]:translate-x-[45.8rem] landscape:group-has-[[data-board]]:-translate-y-[18.5rem] landscape:group-has-[[data-board]]:scale-[0.7552] landscape:group-has-[[data-board]]:transition-[translate,scale] landscape:group-has-[[data-board]]:duration-500 landscape:group-has-[[data-board]]:ease-out"
+            className="absolute top-[4.1rem] left-1/2 z-10 w-[35.2rem] -translate-x-1/2 landscape:top-[24.6rem] landscape:left-[3.2rem] landscape:w-[29rem] landscape:origin-top-left landscape:translate-x-0 landscape:will-change-transform landscape:transition-[translate,scale] landscape:duration-500 landscape:ease-out landscape:group-has-[[data-start]]:translate-x-[93.7rem] landscape:group-has-[[data-start]]:-translate-y-[22.5rem] landscape:group-has-[[data-start]]:scale-[0.7004] landscape:group-has-[[data-board]]:translate-x-[45.8rem] landscape:group-has-[[data-board]]:-translate-y-[18.5rem] landscape:group-has-[[data-board]]:scale-[0.7552]"
           />
         )}
         <AnimatePresence mode="wait">

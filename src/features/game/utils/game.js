@@ -2,7 +2,7 @@
 // (2 red flags + 1 decoy) in three fixed slots. Pure functions, no React.
 
 export const ROUNDS = 10;
-export const ROUND_MS = 10_000;
+export const ROUND_MS = 15_000;
 export const SLOTS = 3;
 const QUALIFYING_SCORE = 1000;
 
