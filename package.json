@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "test": "node --test",
-    "zip": "vite build && tar -a -cf dist/mission-grahaq-game-aws.zip -C dist ."
+    "postbuild": "%SystemRoot%\\System32\\tar.exe -a -cf dist/mission-grahaq-game-aws.zip -C dist ."
   },
   "dependencies": {
     "framer-motion": "^13.4.0",

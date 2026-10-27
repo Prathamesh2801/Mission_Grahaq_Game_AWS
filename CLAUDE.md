@@ -14,7 +14,7 @@ general web app — it runs fullscreen on one screen, has no backend, and no per
 ```bash
 npm run dev             # Vite dev server, --host so the kiosk/phone on the LAN can load it
 npm run build           # production build to dist/ (base './', so it runs from S3/CloudFront/Amplify or a file path)
-npm run zip             # build, then pack dist/ into dist/mission-grahaq-game-aws.zip (index.html at the root, for upload)
+# postbuild packs dist/ into dist/mission-grahaq-game-aws.zip (index.html at the root, for upload), using Windows tar.exe: Git's GNU tar cannot write zips
 npm run lint            # eslint
 npm test                # node --test, no framework
 node --test src/features/game/utils/game.test.js          # one file
